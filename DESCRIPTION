@@ -16,4 +16,6 @@ Imports:
     magrittr,
     plyr
 Depends: 
-    R (>= 2.10)
+    R (>= 2.10),
+    magrittr,
+    plyr
