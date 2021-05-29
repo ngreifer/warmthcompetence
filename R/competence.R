@@ -183,8 +183,8 @@ competence<- function(text, ID, metrics = c("scores", "features", "all")){
   competence_features1 <- stats::predict(preprocessParams1, competence_features)
   competence_predictions <- competence_model %>% stats::predict(competence_features1)
   df$competence_predictions <- competence_predictions
-  if(metrics[1] == "features") (return(competence_features))
-  if(metrics[1] == "all") (return(df))
-  if(metrics[1] == "scores") (return(competence_predictions))}
-
+  # return
+  if(metrics[1] == "features") (return(df %>% dplyr::select(-(c("text", "WC", "competence_predictions")))))
+  if(metrics[1] == "all") (return(df %>% dplyr::select(-(c("text", "WC")))))
+  if(metrics[1] == "scores") (return(df[, c("ID", "competence_predictions")]))}
 
