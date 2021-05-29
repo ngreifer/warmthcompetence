@@ -30,6 +30,13 @@ warmth <- function(text, ID, metrics = c("scores", "features", "all")){
   df <- data.frame(text, ID)
   df$WC <- apply(df %>% dplyr::select(text), 1, ngram::wordcount)
   try <- spacy_tbl(text, ID)
+  words_clean <- function(text, ID){
+    allData <- tibble::tibble(text, ID)
+    allData$text_clean <- tm::stripWhitespace(tm::removePunctuation(qdap::replace_symbol(qdap::replace_abbreviation(qdap::replace_contraction(qdap::clean(text))))))
+    tidy_norms_clean <- allData %>% dplyr::select(text_clean, ID)  %>%
+      tidytext::unnest_tokens("word", text_clean, to_lower = FALSE)
+    return(tidy_norms_clean)
+  }
   tidy_norms_clean <- words_clean(text, ID)
   df_corpus <- quanteda::corpus(df$text, docnames = df$ID)
   df_dfm <- quanteda::dfm(df_corpus, tolower = TRUE, stem = FALSE, select = NULL, remove = NULL, dictionary = NULL,
