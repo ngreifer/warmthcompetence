@@ -145,7 +145,7 @@ warmth <- function(text, ID, metrics = c("scores", "features", "all")){
   tidy_norms_clean$bundle_7 <- 0
   tidy_norms_clean$bundle_8 <- 0
   tidy_norms_clean$revision <- 0
-  for (i in 1:tnc) {
+  for (i in 1:13067) {
     if (tolower(tidy_norms_clean$word[i]) %in% qdapDictionaries::submit.words) (tidy_norms_clean$submit_words[i] =  1)
     if (tolower(tidy_norms_clean$word[i]) %in% qdapDictionaries::power.words) (tidy_norms_clean$power_words[i] =  1)
     if (tolower(tidy_norms_clean$word[i]) %in% qdapDictionaries::strong.words) (tidy_norms_clean$strong_words[i] =  1)
