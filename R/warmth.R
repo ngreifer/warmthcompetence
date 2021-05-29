@@ -34,6 +34,7 @@ warmth <- function(text, ID, metrics = c("scores", "features", "all")){
   df <- data.frame(text, ID)
   df$WC <- apply(df %>% dplyr::select(text), 1, ngram::wordcount)
   try <- spacy_tbl(text, ID)
+  print("step 1")
   allData <- tibble::tibble(text, ID)
   allData$text_clean <- tm::stripWhitespace(tm::removePunctuation(qdap::replace_symbol(qdap::replace_abbreviation(qdap::replace_contraction(qdap::clean(text))))))
   tidy_norms_clean <- allData %>% dplyr::select(text_clean, ID)  %>%
@@ -42,6 +43,7 @@ warmth <- function(text, ID, metrics = c("scores", "features", "all")){
   df_dfm <- quanteda::dfm(df_corpus, tolower = TRUE, stem = FALSE, select = NULL, remove = NULL, dictionary = NULL,
                 thesaurus = NULL, valuetype = c("glob", "regex", "fixed"))
   tnc <- nrow(tidy_norms_clean)
+  print("step 2")
   #politeness features
   df_politeness <- politeness::politeness(df$text, parser="spacy",drop_blank = TRUE, metric = "average")
   df$Negation <- if (!is.null(df_politeness$Negation)) {df$Negation <- df_politeness$Negation} else {df$Negation <- 0}
@@ -150,6 +152,7 @@ warmth <- function(text, ID, metrics = c("scores", "features", "all")){
     if (tolower(tidy_norms_clean$word[i]) %in% bundle_5) (tidy_norms_clean$bundle_5[i] =  1)
     if (tolower(tidy_norms_clean$word[i]) %in% bundle_7) (tidy_norms_clean$bundle_7[i] =  1)
     if (tolower(tidy_norms_clean$word[i]) %in% bundle_8) (tidy_norms_clean$bundle_8[i] =  1)}
+  print("step 3")
   words_scores <- plyr::ddply(tidy_norms_clean,.(ID),plyr::summarize,
                                submit_words = sum(submit_words, na.rm = TRUE),
                                power_words = sum(power_words, na.rm = TRUE),
@@ -157,6 +160,7 @@ warmth <- function(text, ID, metrics = c("scores", "features", "all")){
                               bundle_5C = sum(bundle_5, na.rm = TRUE)/tnc,
                             bundle_7C = sum(bundle_7, na.rm = TRUE)/tnc,
                             bundle_8C = sum(bundle_8, na.rm = TRUE)/tnc)
+  print("step 4")
   df <- dplyr::left_join(df, words_scores, by = c("ID" = "ID"))
   df$submit_words <- df$submit_words/ df$WC
   df$power_words <- df$power_words/ df$WC
@@ -194,6 +198,7 @@ warmth <- function(text, ID, metrics = c("scores", "features", "all")){
   for (i in 1:tnc) {
     if (tidy_norms_clean$word[i] %in% revision) (tidy_norms_clean$revision[i] =  1)
   }
+  print("step 5")
   discourse_scores <- plyr::ddply(tidy_norms_clean,.(ID),plyr::summarize,
                               revision = sum(revision, na.rm = TRUE))
   ref <- as.data.frame(df$ID)
