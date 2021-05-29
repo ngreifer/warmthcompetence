@@ -1,13 +1,19 @@
 Package: warmthcompetence
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Warmth and Competence Detectors
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Author: Bushra Guenoun, Julian Zlatev
+Maintainer: Bushra Guenoun <bushraguenoun@gmail.com>
+Description: Detects perceptions of warmth and competence in self-presentational langauge.
+    Using pre-trained ridge regression models, this package provides a numerical representation of warmth and competence perceptions. 
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 URL: https://github.com/bushraguenoun/warmthcompetence
 BugReports: https://github.com/bushraguenoun/warmthcompetence/issues
+RoxygenNote: 7.1.1
+Imports: 
+    magrittr,
+    plyr
+Depends: 
+    R (>= 2.10)
