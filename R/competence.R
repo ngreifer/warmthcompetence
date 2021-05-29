@@ -5,7 +5,7 @@
 #'     It takes an N-length vector of self-presentational text documents and N-length vector of document IDs and returns a competence perception score that represents how much competence
 #'     others attribute the individual who wrote the self-presentational text.
 #'     The function also contains a metrics argument that enables users to also return the raw features used to assess competence perceptions.
-#' @import plyr, magrittr, dplyr
+#' @import plyr, magrittr
 #' @param text character A vector of texts, each of which will be assessed for competence.
 #' @param ID character A vector of IDs that will be used to identify the competence scores.
 #' @param metrics character An argument that allows users to decide what metrics to return. Users can return the competence scores (metrics = "scores"),
