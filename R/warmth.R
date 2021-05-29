@@ -18,11 +18,15 @@
 #' @references
 #' TO ADD
 
-
-# k2 <- warmth(mit$Message, mit$ResponseId)
-# summary(k)
+# text <- mit$Message
+# ID <- mit$ResponseId
+# library(plyr)
 #
-# warmth(mit$Message, mit$ResponseId, "all")
+# df <- data.frame(mit$Message, mit$ResponseId)
+# # k2 <- warmth(mit$Message, mit$ResponseId)
+# # summary(k)
+# #
+# # warmth(mit$Message, mit$ResponseId, "all")
 
 ##default for metrics is score
 warmth <- function(text, ID, metrics = c("scores", "features", "all")){
@@ -37,6 +41,7 @@ warmth <- function(text, ID, metrics = c("scores", "features", "all")){
   df_corpus <- quanteda::corpus(df$text, docnames = df$ID)
   df_dfm <- quanteda::dfm(df_corpus, tolower = TRUE, stem = FALSE, select = NULL, remove = NULL, dictionary = NULL,
                 thesaurus = NULL, valuetype = c("glob", "regex", "fixed"))
+  tnc <- nrow(tidy_norms_clean)
   #politeness features
   df_politeness <- politeness::politeness(df$text, parser="spacy",drop_blank = TRUE, metric = "average")
   df$Negation <- if (!is.null(df_politeness$Negation)) {df$Negation <- df_politeness$Negation} else {df$Negation <- 0}
@@ -138,7 +143,7 @@ warmth <- function(text, ID, metrics = c("scores", "features", "all")){
   tidy_norms_clean$bundle_7 <- 0
   tidy_norms_clean$bundle_8 <- 0
   tidy_norms_clean$revision <- 0
-  for (i in 1:nrow(tidy_norms_clean)) {
+  for (i in 1:tnc) {
     if (tolower(tidy_norms_clean$word[i]) %in% qdapDictionaries::submit.words) (tidy_norms_clean$submit_words[i] =  1)
     if (tolower(tidy_norms_clean$word[i]) %in% qdapDictionaries::power.words) (tidy_norms_clean$power_words[i] =  1)
     if (tolower(tidy_norms_clean$word[i]) %in% qdapDictionaries::strong.words) (tidy_norms_clean$strong_words[i] =  1)
@@ -149,9 +154,9 @@ warmth <- function(text, ID, metrics = c("scores", "features", "all")){
                                submit_words = sum(submit_words, na.rm = TRUE),
                                power_words = sum(power_words, na.rm = TRUE),
                                strong_words = sum(strong_words, na.rm = TRUE),
-                              bundle_5C = sum(bundle_5, na.rm = TRUE)/nrow(tidy_norms_clean),
-                            bundle_7C = sum(bundle_7, na.rm = TRUE)/nrow(tidy_norms_clean),
-                            bundle_8C = sum(bundle_8, na.rm = TRUE)/nrow(tidy_norms_clean))
+                              bundle_5C = sum(bundle_5, na.rm = TRUE)/tnc,
+                            bundle_7C = sum(bundle_7, na.rm = TRUE)/tnc,
+                            bundle_8C = sum(bundle_8, na.rm = TRUE)/tnc)
   df <- dplyr::left_join(df, words_scores, by = c("ID" = "ID"))
   df$submit_words <- df$submit_words/ df$WC
   df$power_words <- df$power_words/ df$WC
@@ -186,7 +191,7 @@ warmth <- function(text, ID, metrics = c("scores", "features", "all")){
   # Discourse Markers
   revision <- qdapDictionaries::discourse.markers.alemany$marker[which(qdapDictionaries::discourse.markers.alemany$type == "revision")]
   tidy_norms_clean$revision <- 0
-  for (i in 1:nrow(tidy_norms_clean)) {
+  for (i in 1:tnc) {
     if (tidy_norms_clean$word[i] %in% revision) (tidy_norms_clean$revision[i] =  1)
   }
   discourse_scores <- plyr::ddply(tidy_norms_clean,.(ID),plyr::summarize,
