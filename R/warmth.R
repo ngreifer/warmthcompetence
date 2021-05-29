@@ -19,10 +19,10 @@
 #' TO ADD
 
 
-k2 <- warmth(mit$Message, mit$ResponseId)
-summary(k)
-
-warmth(mit$Message, mit$ResponseId, "all")
+# k2 <- warmth(mit$Message, mit$ResponseId)
+# summary(k)
+#
+# warmth(mit$Message, mit$ResponseId, "all")
 
 ##default for metrics is score
 warmth <- function(text, ID, metrics = c("scores", "features", "all")){

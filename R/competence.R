@@ -24,10 +24,10 @@
 # k <- competence(mit$Message, mit$ResponseId)
 # summary(k)
 
-k <-competence(mit$Message, mit$ResponseId)
-dre <- cbind(k, k2)
-plot(dre)
-cor(k, k2)
+# k <-competence(mit$Message, mit$ResponseId)
+# dre <- cbind(k, k2)
+# plot(dre)
+# cor(k, k2)
 
 ##default for metrics is score
 competence<- function(text, ID, metrics = c("scores", "features", "all")){
