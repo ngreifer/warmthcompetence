@@ -5,7 +5,7 @@
 #'     It takes an N-length vector of self-presentational text documents and N-length vector of document IDs and returns a competence perception score that represents how much competence
 #'     others attribute the individual who wrote the self-presentational text.
 #'     The function also contains a metrics argument that enables users to also return the raw features used to assess competence perceptions.
-#' @import plyr, magrittr
+#' @import plyr, magrittr, dplyr
 #' @param text character A vector of texts, each of which will be assessed for competence.
 #' @param ID character A vector of IDs that will be used to identify the competence scores.
 #' @param metrics character An argument that allows users to decide what metrics to return. Users can return the competence scores (metrics = "scores"),
@@ -120,7 +120,8 @@ competence<- function(text, ID, metrics = c("scores", "features", "all")){
   for (i in 1:nrow(tidy_norms_clean)) {
       if (tolower(tidy_norms_clean$word[i]) %in% bundle_1) (tidy_norms_clean$bundle_1[i] =  1)}
   words_scores <- plyr::ddply(tidy_norms_clean,.(ID),plyr::summarize,
-                              bundle_1C = sum(bundle_1, na.rm = TRUE)/nrow(tidy_norms_clean))
+                              bundle_1C = sum(bundle_1, na.rm = TRUE))
+  words_scores$bundle_1C <- words_scores$bundle_1C/ nrow(tidy_norms_clean)
   df <- dplyr::left_join(df, words_scores, by = c("ID" = "ID"))
   # Adjective Modality Norms
   adj_mod_df <- dplyr::inner_join(tidy_norms_clean, adj_mod_dic, by = c("word" = "Symbol"), ignore_case = TRUE)

@@ -5,7 +5,7 @@
 #'     It takes an N-length vector of self-presentational text documents and N-length vector of document IDs and returns a warmth perception score that represents how much warmth
 #'     others attribute the individual who wrote the self-presentational text.
 #'     The function also contains a metrics argument that enables users to also return the raw features used to assess warmth perceptions.
-#' @import plyr, magrittr
+#' @import plyr, magrittr, dplyr
 #' @param text character A vector of texts, each of which will be assessed for warmth.
 #' @param ID character A vector of IDs that will be used to identify the warmth scores.
 #' @param metrics character An argument that allows users to decide what metrics to return. Users can return the warmth scores (metrics = "scores"),
@@ -34,16 +34,10 @@ warmth <- function(text, ID, metrics = c("scores", "features", "all")){
   df <- data.frame(text, ID)
   df$WC <- apply(df %>% dplyr::select(text), 1, ngram::wordcount)
   try <- spacy_tbl(text, ID)
-  print("step 1")
-  allData <- tibble::tibble(text, ID)
-  allData$text_clean <- tm::stripWhitespace(tm::removePunctuation(qdap::replace_symbol(qdap::replace_abbreviation(qdap::replace_contraction(qdap::clean(text))))))
-  tidy_norms_clean <- allData %>% dplyr::select(text_clean, ID)  %>%
-    tidytext::unnest_tokens("word", text_clean, to_lower = FALSE)
+  tidy_norms_clean <- words_clean(text, ID)
   df_corpus <- quanteda::corpus(df$text, docnames = df$ID)
   df_dfm <- quanteda::dfm(df_corpus, tolower = TRUE, stem = FALSE, select = NULL, remove = NULL, dictionary = NULL,
-                thesaurus = NULL, valuetype = c("glob", "regex", "fixed"))
-  tnc <- nrow(tidy_norms_clean)
-  print("step 2")
+                          thesaurus = NULL, valuetype = c("glob", "regex", "fixed"))
   #politeness features
   df_politeness <- politeness::politeness(df$text, parser="spacy",drop_blank = TRUE, metric = "average")
   df$Negation <- if (!is.null(df_politeness$Negation)) {df$Negation <- df_politeness$Negation} else {df$Negation <- 0}
@@ -145,14 +139,13 @@ warmth <- function(text, ID, metrics = c("scores", "features", "all")){
   tidy_norms_clean$bundle_7 <- 0
   tidy_norms_clean$bundle_8 <- 0
   tidy_norms_clean$revision <- 0
-  for (i in 1:tnc) {
+  for (i in 1:nrow(tidy_norms_clean)) {
     if (tolower(tidy_norms_clean$word[i]) %in% qdapDictionaries::submit.words) (tidy_norms_clean$submit_words[i] =  1)
     if (tolower(tidy_norms_clean$word[i]) %in% qdapDictionaries::power.words) (tidy_norms_clean$power_words[i] =  1)
     if (tolower(tidy_norms_clean$word[i]) %in% qdapDictionaries::strong.words) (tidy_norms_clean$strong_words[i] =  1)
     if (tolower(tidy_norms_clean$word[i]) %in% bundle_5) (tidy_norms_clean$bundle_5[i] =  1)
     if (tolower(tidy_norms_clean$word[i]) %in% bundle_7) (tidy_norms_clean$bundle_7[i] =  1)
     if (tolower(tidy_norms_clean$word[i]) %in% bundle_8) (tidy_norms_clean$bundle_8[i] =  1)}
-  print("step 3")
   words_scores <- plyr::ddply(tidy_norms_clean,.(ID),plyr::summarize,
                                submit_words = sum(submit_words, na.rm = TRUE),
                                power_words = sum(power_words, na.rm = TRUE),
@@ -160,11 +153,9 @@ warmth <- function(text, ID, metrics = c("scores", "features", "all")){
                               bundle_5C = sum(bundle_5, na.rm = TRUE),
                             bundle_7C = sum(bundle_7, na.rm = TRUE),
                             bundle_8C = sum(bundle_8, na.rm = TRUE))
-  print("step 4")
   words_scores$bundle_5C <- words_scores$bundle_5C/ nrow(tidy_norms_clean)
   words_scores$bundle_7C <- words_scores$bundle_7C/ nrow(tidy_norms_clean)
   words_scores$bundle_8C <- words_scores$bundle_8C/ nrow(tidy_norms_clean)
-  print("step 4.5")
   df <- dplyr::left_join(df, words_scores, by = c("ID" = "ID"))
   df$submit_words <- df$submit_words/ df$WC
   df$power_words <- df$power_words/ df$WC
@@ -199,10 +190,9 @@ warmth <- function(text, ID, metrics = c("scores", "features", "all")){
   # Discourse Markers
   revision <- qdapDictionaries::discourse.markers.alemany$marker[which(qdapDictionaries::discourse.markers.alemany$type == "revision")]
   tidy_norms_clean$revision <- 0
-  for (i in 1:tnc) {
+  for (i in 1:nrow(tidy_norms_clean)) {
     if (tidy_norms_clean$word[i] %in% revision) (tidy_norms_clean$revision[i] =  1)
   }
-  print("step 5")
   discourse_scores <- plyr::ddply(tidy_norms_clean,.(ID),plyr::summarize,
                               revision = sum(revision, na.rm = TRUE))
   ref <- as.data.frame(df$ID)
