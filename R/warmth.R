@@ -145,7 +145,7 @@ warmth <- function(text, ID, metrics = c("scores", "features", "all")){
   tidy_norms_clean$bundle_7 <- 0
   tidy_norms_clean$bundle_8 <- 0
   tidy_norms_clean$revision <- 0
-  for (i in 1:13067) {
+  for (i in 1:tnc) {
     if (tolower(tidy_norms_clean$word[i]) %in% qdapDictionaries::submit.words) (tidy_norms_clean$submit_words[i] =  1)
     if (tolower(tidy_norms_clean$word[i]) %in% qdapDictionaries::power.words) (tidy_norms_clean$power_words[i] =  1)
     if (tolower(tidy_norms_clean$word[i]) %in% qdapDictionaries::strong.words) (tidy_norms_clean$strong_words[i] =  1)
@@ -157,10 +157,14 @@ warmth <- function(text, ID, metrics = c("scores", "features", "all")){
                                submit_words = sum(submit_words, na.rm = TRUE),
                                power_words = sum(power_words, na.rm = TRUE),
                                strong_words = sum(strong_words, na.rm = TRUE),
-                              bundle_5C = sum(bundle_5, na.rm = TRUE)/tnc,
-                            bundle_7C = sum(bundle_7, na.rm = TRUE)/tnc,
-                            bundle_8C = sum(bundle_8, na.rm = TRUE)/tnc)
+                              bundle_5C = sum(bundle_5, na.rm = TRUE),
+                            bundle_7C = sum(bundle_7, na.rm = TRUE),
+                            bundle_8C = sum(bundle_8, na.rm = TRUE))
   print("step 4")
+  words_scores$bundle_5C <- words_scores$bundle_5C/ nrow(tidy_norms_clean)
+  words_scores$bundle_7C <- words_scores$bundle_7C/ nrow(tidy_norms_clean)
+  words_scores$bundle_8C <- words_scores$bundle_8C/ nrow(tidy_norms_clean)
+  print("step 4.5")
   df <- dplyr::left_join(df, words_scores, by = c("ID" = "ID"))
   df$submit_words <- df$submit_words/ df$WC
   df$power_words <- df$power_words/ df$WC
