@@ -1,7 +1,6 @@
 #' A function to format text
 #'
 #' @description Contains functions that are used by the main functions of the \code{warmthcompetence} package for text processing.
-#' @import plyr, magrittr
 #' @param text character A vector of texts
 #' @param ID character A vector of IDs
 #' @details Some features depend Spacyr which must be installed seperately in Python.

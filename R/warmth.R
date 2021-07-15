@@ -5,7 +5,6 @@
 #'     It takes an N-length vector of self-presentational text documents and N-length vector of document IDs and returns a warmth perception score that represents how much warmth
 #'     others attribute the individual who wrote the self-presentational text.
 #'     The function also contains a metrics argument that enables users to also return the raw features used to assess warmth perceptions.
-#' @import plyr, magrittr, spacyr
 #' @param text character A vector of texts, each of which will be assessed for warmth.
 #' @param ID character A vector of IDs that will be used to identify the warmth scores.
 #' @param metrics character An argument that allows users to decide what metrics to return. Users can return the warmth scores (metrics = "scores"),
@@ -286,5 +285,3 @@ warmth <- function(text, ID, metrics = c("scores", "features", "all")){
   if(metrics[1] == "features") (return(cbind(ID = df$ID, as.data.frame(warmth_features_output))))
   if(metrics[1] == "all") (return(cbind(ID = df$ID, warmth_predictions = df$warmth_predictions, as.data.frame(warmth_features_output))))
   if(metrics[1] == "scores") (return(df[, c("ID", "warmth_predictions")]))}
-
-

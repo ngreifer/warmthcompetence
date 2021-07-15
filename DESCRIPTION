@@ -13,11 +13,8 @@ URL: https://github.com/bushraguenoun/warmthcompetence
 BugReports: https://github.com/bushraguenoun/warmthcompetence/issues
 RoxygenNote: 7.1.1
 Imports: 
-    magrittr,
-    plyr,
-    spacyr
+    magrittr, plyr, spacyr, caret, dplyr, lexicon, ngram, politeness, qdap, qdapDictionaries, quanteda,
+    raster, sentimentr, tibble, tidyr, tidytext, tm
 Depends: 
-    R (>= 2.10),
-    magrittr,
-    plyr,
-    spacyr
+    R (>= 2.10)
+    

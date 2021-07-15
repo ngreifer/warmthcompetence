@@ -41,24 +41,66 @@
 #'
 "education_words"
 
-#' Employment Words
+#' Warmth and Competence Ratings
 #'
-#' list of employment words
+#' list of words rated by judges on warmth and competence
 #'
-#' @format A list of 23 words
+#' @format A list of 1711 words with two attributes
 #'
-"employ_words"
+"W_C_ratings"
+
+#' Authenticity Dictionary
+#'
+#' Authenticity norms
+#'
+#' @format A list of 89  words with one attributes
+#' @source Boyd, R. L. (2017). TAPA: Textual Affective Properties Analyzer (v.1.1.0) [Software]. Available from https://www.ryanboyd.io/software/tapa
+#'
+"auth_dic"
+
+#' Environmental words
+#'
+#' list of words related to an environmental value orientation
+#'
+#' @format A list of 42  words
+#' @source Moss, T. W., Renko, M., Block, E., & Meyskens, M. (2018). Funding the story of hybrid ventures: Crowdfunder lending preferences and linguistic hybridity. Journal of Business Venturing, 33(5), 643-659.
+#'
+"environmental_words"
+
+#' Auxiliary Verbs
+#'
+#' list of auxiliary verbs
+#'
+#' @format A list of 10  words
+#'
+"helping_verbs"
+
+#' Linking Verbs
+#'
+#' list of linking verbs
+#'
+#' @format A list of 13  words
+#'
+"linking_verbs"
+
+#' Vignette Data
+#'
+#' Sample data from a study that can be used to test and explore the package
+#'
+#' @format A dataframe with 393 rows and 135 columns
+#'
+"vignette_data"
 
 #' Warmth Model
 #'
-#' A pre-trained ridge regression model to assess warmth perceptions
+#' A pre-trained enet regression model to assess warmth perceptions
 #'
 #'
-"warmth_model"
+"warmth_enet_final"
 
 #' Competence Model
 #'
-#' A pre-trained ridge regression model to assess competence perceptions
+#' A pre-trained enet regression model to assess competence perceptions
 #'
 #'
-"competence_model"
+"competence_enet_final"
