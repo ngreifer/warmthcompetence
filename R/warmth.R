@@ -5,7 +5,7 @@
 #'     It takes an N-length vector of self-presentational text documents and N-length vector of document IDs and returns a warmth perception score that represents how much warmth
 #'     others attribute the individual who wrote the self-presentational text.
 #'     The function also contains a metrics argument that enables users to also return the raw features used to assess warmth perceptions.
-#' @import plyr, magrittr
+#' @import plyr, magrittr, spacyr
 #' @param text character A vector of texts, each of which will be assessed for warmth.
 #' @param ID character A vector of IDs that will be used to identify the warmth scores.
 #' @param metrics character An argument that allows users to decide what metrics to return. Users can return the warmth scores (metrics = "scores"),
@@ -30,7 +30,10 @@ warmth <- function(text, ID, metrics = c("scores", "features", "all")){
   #word count and text objects
   df <- data.frame(text, ID)
   df$WC <- apply(df %>% dplyr::select(text), 1, ngram::wordcount)
-  try <- spacy_tbl(text, ID)
+  tbl <- tibble::as_tibble(
+    data.frame(doc_id = ID, text = text, stringsAsFactors = F)
+  )
+  try <- spacyr::spacy_parse(tbl, tag = TRUE, dependency = TRUE, nounphrase = TRUE)
   tidy_norms_clean <- words_clean(text, ID)
   df_corpus <- quanteda::corpus(df$text, docnames = df$ID)
   df_dfm <- quanteda::dfm(df_corpus, tolower = TRUE, stem = FALSE, select = NULL, remove = NULL, dictionary = NULL,
@@ -39,11 +42,9 @@ warmth <- function(text, ID, metrics = c("scores", "features", "all")){
   #politeness features
   df_politeness <- politeness::politeness(df$text, parser="spacy",drop_blank = TRUE, metric = "average")
   df$For.Me <- if (!is.null(df_politeness$For.Me)) {df$For.Me <- df_politeness$For.Me} else {df$For.Me <- 0}
-  df$Please <- if (!is.null(df_politeness$Please)) {df$Please <- df_politeness$Please} else {df$Please <- 0}
-  df$Hello.y <- if (!is.null(df_politeness$Hello)) {df$Hello.y <- df_politeness$Hello} else {df$Hello.y <- 0}
 
   #sentence level spacy features
-  suppressWarnings(spacy_new2A <- plyr::ddply(try, .(doc_id, sentence_id), plyr::summarize,
+  suppressWarnings(spacy_new2A <- plyr::ddply(try, .(doc_id, sentence_id), dplyr::summarise,
                                               post_PRON1_main = (length(token_id[pos == 'PRON' & token_id > head_token_id])/ length(token_id[pos == 'PRON'])),
                                               post_VBD_VERB2_main = (length(token_id[tag == 'VBD' & token_id > head_token_id])/ length(token_id)),
                                               post_CCONJ2_nsubj = (length(token_id[pos == 'CCONJ' & token_id > token_id[dep_rel == "nsubj"]])/ length(token_id)),
@@ -84,8 +85,10 @@ warmth <- function(text, ID, metrics = c("scores", "features", "all")){
                                 ((length(token_id[(token == 'i' | token == 'i\'m' | token == 'me'|  token == 'mine' | token == 'you'| token == 'yours')
                                                   & (dep_rel == 'nsubj' | dep_rel == 'csubj' | dep_rel == 'csubjpass' | dep_rel == 'nsubjpass' )])) + (length(token_id[(token == 'i' | token == 'i\'m' | token == 'me'|  token == 'mine'| token == 'you'| token == 'yours')
                                                                                                                                                                        & (dep_rel == 'dobj' | dep_rel == 'pobj')]))),
-                               agency_target3000 = ((length(token_id[(token == 'i' | token == 'i\'m' | token == 'me'|  token == 'mine'| token == 'you'| token == 'yours')
-                                                                     & (dep_rel == 'dobj' | dep_rel == 'pobj')])))/((length(token_id[(tag == 'PRP' ) & (dep_rel == 'dobj' | dep_rel == 'pobj')]))/(length(token_id[(tag == 'PRP')]))),
+                               agency_try1000 = (length(token_id[(token == 'i' | token == 'i\'m' | token == 'me'|  token == 'mine'| token == 'you'| token == 'yours')
+                                                                 & (dep_rel == 'dobj' | dep_rel == 'pobj')])),
+                               agency_try3 = (length(token_id[(tag == 'PRP')])),
+                               agency_target3000 = agency_try1000/agency_try3,
                                targetK2 = ((length(token_id[(token == 'you'| token == 'yours' | token == 'us' | token == 'we')
                                                             & (dep_rel == 'nsubj' | dep_rel == 'csubj' | dep_rel == 'csubjpass' | dep_rel == 'nsubjpass' )])))/ ((length(token_id[(pos == 'PRON')]))),
                                agency_try000 = (length(token_id[(token == 'i' | token == 'i\'m' | token == 'me'|  token == 'mine') & (dep_rel == 'nsubj' | dep_rel == 'csubj' | dep_rel == 'csubjpass' | dep_rel == 'nsubjpass' )])))
@@ -96,6 +99,7 @@ warmth <- function(text, ID, metrics = c("scores", "features", "all")){
   df$PROPN <- df$PROPN/ df$WC
   df$intj <- df$intj/ df$WC
   df$INTJ.x <- df$INTJ.x/ df$WC
+
 
   #regressive imagery features, social word feature, verb features
   wanted <- c("regex")
@@ -131,8 +135,8 @@ warmth <- function(text, ID, metrics = c("scores", "features", "all")){
   for (j in 1:length(helping_verbs$WORDS)) {
    if (grepl(helping_verbs$WORDS[j], tolower(df$text[i]), ignore.case = TRUE, perl = TRUE)) {(df$helping_verbs[i] <- df$helping_verbs[i] + 1)} }}
   df$cold <- df$cold/ df$WC
+  df$passivity <- df$passivity/ df$WC
   df$social_words <- df$social_words/ df$WC
-  df$environmental_words <- df$environmental_words/ df$WC
   df$mental_verbs <- df$mental_verbs/ df$WC
   df$helping_verbs <- df$helping_verbs/ df$WC
   df$linking_verbs <- df$linking_verbs/ df$WC
@@ -142,7 +146,6 @@ warmth <- function(text, ID, metrics = c("scores", "features", "all")){
   single_df <- dplyr::inner_join(tidy_norms_clean, single_words_dic, by = c("word" = "Symbol"), ignore_case = TRUE)
   single_scores <- plyr::ddply(single_df,.(ID),plyr::summarize, HAL = sum(HAL, na.rm = TRUE))
   df <- dplyr::left_join(df, single_scores, by = c("ID" = "ID"))
-  df$HAL <- df$HAL/ df$WC
 
   #bundles
   bundle_5 <- c("hope", "love", "like", "support", "enjoy")
@@ -202,6 +205,7 @@ warmth <- function(text, ID, metrics = c("scores", "features", "all")){
   df <- dplyr::left_join(df, negative_pol, by = c("ID" = "ID"))
   df$negative_pol <- df$negative_pol/ df$WC
 
+
   # Discourse Markers
   revision <- qdapDictionaries::discourse.markers.alemany$marker[which(qdapDictionaries::discourse.markers.alemany$type == "revision")]
   equality <- qdapDictionaries::discourse.markers.alemany$marker[which(qdapDictionaries::discourse.markers.alemany$type == "equality")]
@@ -235,16 +239,52 @@ warmth <- function(text, ID, metrics = c("scores", "features", "all")){
   df$revision_ALL <- df$revision_ALL / df$WC
   df$equality_ALL <- df$equality_ALL / df$WC
 
+  #Hello and Please
+  Hello_words <- c("hi","hello","hey")
+  Please_words <- c("please")
+  tidy_norms_clean$Hello <- 0
+  tidy_norms_clean$Please <- 0
+  for (i in 1:nrow(tidy_norms_clean)) {
+    if (tolower(tidy_norms_clean$word[i]) %in% Hello_words) (tidy_norms_clean$Hello[i] =  1)
+    if (tolower(tidy_norms_clean$word[i]) %in% Please_words) (tidy_norms_clean$Please[i] =  1)
+    }
+  Hello_scores <- plyr::ddply(tidy_norms_clean,.(ID),plyr::summarize,
+                        Hello.y = sum(Hello, na.rm = TRUE),
+                        Please = sum(Please, na.rm = TRUE))
+  df <- dplyr::left_join(df, Hello_scores, by = c("ID" = "ID"))
+
   # Running pre-trained model
-  warmth_features <- df %>% dplyr::select(-(text:WC))
+  warmth_features <- df[,c("post_PRON1_main", "fear_difference", "post_VBD_VERB2_main", "post_CCONJ2_nsubj", "rel_dist3a",
+                             "agency_target1000", "surprise_difference", "environmental_words", "n_before_subj", "rel_dist36a",
+                             "pre_PART1_main", "For.Me", "revision_ALL", "pre_DT_adv2_subj", "helping_verbs", "post_ADP1_ROOT",
+                             "RBR", "nummod", "passivity", "post_adj2_ROOT", "qualifiersC", "PDT", "PROPN", "post_DT_adv1_main",
+                             "agency_target3000", "pre_PRP_adv2_subj", "post_NNS_NOUN1_ROOT", "phrase_length", "post_adj1_ROOT",
+                             "VBZ.y", "Authenticity", "intj", "pron_first", "linking_verbs", "pre_PRON2_ROOT", "equality_ALL", "Please",
+                             "targetK2", "bundle_2C", "education_words", "pre_adv2_main", "INTJ.x", "cold", "target13", "agency_try000",
+                             "social_words", "pre_TO_PART1_main", "HAL", "mental_verbs", "bundle_5C", "Hello.y", "negative_pol")]
   warmth_features <-  raster::as.matrix(warmth_features)
   warmth_features[is.infinite(warmth_features)] <- 0
   warmth_features[is.na(warmth_features)] <- 0
   suppressWarnings(preprocessParams1<-caret::preProcess(warmth_features, method = c("center", "scale")))
   warmth_features1 <- stats::predict(preprocessParams1, warmth_features)
-  warmth_predictions <- warmth_enet_final %>% stats::predict(warmth_features1)
+  warmth_predictions <- warmth_enet_final %>% raster::predict(warmth_features1)
+  warmth_features_output <- warmth_features1
+  colnames(warmth_features_output) <- c("post_phrase_verb_pronouns","fear","post_phrase_verb_past","post_subject_conjuctions",
+                                        "difference_subject_adverb_clause","you_me_pronouns","surprise","environmental_words",
+                                        "n_before_subj","difference_subject_possession","pre_phrase_verb_participles","for_me",
+                                        "revision_discourse","pre_subject_determiners","helping_verbs","post_sentence_verb_adpositions",
+                                        "comparative_adverbs","num_mod","passivity","post_sentence_verb_adjectives","qualifiers",
+                                        "predeterminers","proper_nouns","post_phrase_verb_determiners","you_me_objects",
+                                        "pre_subject_personal_pronouns","post_sentence_verb_plural_nouns","phrase_length",
+                                        "post_sentence_verb_adjectives","3rd_person_verb","authenticity","interjections_superfluous",
+                                        "pronoun_first","linking_verbs","pre_sentence_verb_pronouns","equality_discourse","please",
+                                        "you_us_pronouns","introduction_words","education_words","pre_phrase_verb_adverbs","interjections_total",
+                                        "cold","us_nouns","i_subject","svo_words","infinitives","cue_word_frequency","mental_verbs",
+                                        "postive_verbs","hello","negative_polarity")
   df$warmth_predictions <- warmth_predictions
   # return
-  if(metrics[1] == "features") (return(df %>% dplyr::select(-(c("text", "WC", "warmth_predictions")))))
-  if(metrics[1] == "all") (return(df %>% dplyr::select(-(c("text", "WC")))))
+  if(metrics[1] == "features") (return(cbind(ID = df$ID, as.data.frame(warmth_features_output))))
+  if(metrics[1] == "all") (return(cbind(ID = df$ID, warmth_predictions = df$warmth_predictions, as.data.frame(warmth_features_output))))
   if(metrics[1] == "scores") (return(df[, c("ID", "warmth_predictions")]))}
+
+
