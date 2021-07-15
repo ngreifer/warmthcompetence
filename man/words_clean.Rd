@@ -20,3 +20,4 @@ Contains functions that are used by the main functions of the \code{warmthcompet
 \details{
 Some features depend Spacyr which must be installed seperately in Python.
 }
+\keyword{internal}

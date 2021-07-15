@@ -30,6 +30,18 @@ Assesses warmth perceptions in self-presentational natural language.
 \details{
 Some features depend Spacyr which must be installed seperately in Python.
 }
+\examples{
+
+data("vignette_data")
+
+warmth_scores <- warmth(vignette_data$Message, vignette_data$ResponseId, metrics = "all")
+
+vignette_data$warmth_predictions <- warmth_scores$warmth_predictions
+
+warmth_model2 <- lm(RA_warm_AVG  ~ warmth_predictions, data = vignette_data)
+summary(warmth_model2)
+
+}
 \references{
 Yeomans, M., Kantor, A., & Tingley, D. (2018). The politeness Package: Detecting Politeness in Natural Language. R Journal, 10(2).
 Rinker, T. W. (2018). lexicon: Lexicon Data version 1.2.1. http://github.com/trinker/lexicon

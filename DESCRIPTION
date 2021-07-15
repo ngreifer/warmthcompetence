@@ -1,7 +1,7 @@
 Package: warmthcompetence
 Type: Package
 Title: Warmth and Competence Detectors
-Version: 0.1.0
+Version: 0.1.1
 Author: Bushra Guenoun, Julian Zlatev
 Maintainer: Bushra Guenoun <bushraguenoun@gmail.com>
 Description: Detects perceptions of warmth and competence in self-presentational langauge.
@@ -13,8 +13,24 @@ URL: https://github.com/bushraguenoun/warmthcompetence
 BugReports: https://github.com/bushraguenoun/warmthcompetence/issues
 RoxygenNote: 7.1.1
 Imports: 
-    magrittr, plyr, spacyr, caret, dplyr, lexicon, ngram, politeness, qdap, qdapDictionaries, quanteda,
-    raster, sentimentr, tibble, tidyr, tidytext, tm
+    magrittr, 
+    plyr, 
+    spacyr, 
+    caret, 
+    dplyr, 
+    lexicon, 
+    ngram, 
+    politeness, 
+    qdap, 
+    qdapDictionaries, 
+    quanteda,
+    raster, 
+    sentimentr, 
+    testthat,
+    tibble, 
+    tidyr, 
+    tidytext, 
+    tm
 Depends: 
-    R (>= 2.10)
+    R (>= 3.5.0)
     
