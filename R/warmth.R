@@ -26,7 +26,6 @@
 #' @export
 
 
-
 # #TESTING
 # warmth_scores <- warmth(vignette_data$Message, vignette_data$ResponseId, metrics = "all")
 #
@@ -34,6 +33,7 @@
 #
 # warmth_model2 <- lm(RA_warm_AVG  ~ warmth_predictions, data = vignette_data)
 # summary(warmth_model2)
+
 
 ##default for metrics is score
 warmth <- function(text, ID, metrics = c("scores", "features", "all")){
@@ -60,8 +60,8 @@ warmth <- function(text, ID, metrics = c("scores", "features", "all")){
   try <- spacyr::spacy_parse(tbl, tag = TRUE, dependency = TRUE, nounphrase = TRUE)
   tidy_norms_clean <- words_clean(text, ID)
   df_corpus <- quanteda::corpus(df$text, docnames = df$ID)
-  df_dfm <- quanteda::dfm(df_corpus, tolower = TRUE, stem = FALSE, select = NULL, remove = NULL, dictionary = NULL,
-                          thesaurus = NULL, valuetype = c("glob", "regex", "fixed"))
+  df_dfm <- suppressWarnings(quanteda::dfm(df_corpus, tolower = TRUE, stem = FALSE, select = NULL, remove = NULL, dictionary = NULL,
+                          thesaurus = NULL, valuetype = c("glob", "regex", "fixed")))
 
   #politeness features
   df_politeness <- politeness::politeness(df$text, parser="spacy",drop_blank = TRUE, metric = "average")

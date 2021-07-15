@@ -5,7 +5,6 @@
 #' @param ID character A vector of IDs
 #' @details Some features depend Spacyr which must be installed seperately in Python.
 #' @return Tibbles that are used by the main functions of the \code{warmthcompetence} package
-#' @export
 
 
 # Pulling out the words after cleaning

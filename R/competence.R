@@ -34,6 +34,7 @@
 # competence_model2 <- lm(RA_comp_AVG  ~ competence_predictions, data = vignette_data)
 # summary(competence_model2)
 
+
 ##default for metrics is score
 competence<- function(text, ID, metrics = c("scores", "features", "all")){
 
@@ -58,8 +59,8 @@ competence<- function(text, ID, metrics = c("scores", "features", "all")){
   try <- spacyr::spacy_parse(tbl, tag = TRUE, dependency = TRUE, nounphrase = TRUE)
   tidy_norms_clean <- words_clean(text, ID)
   df_corpus <- quanteda::corpus(df$text, docnames = df$ID)
-  df_dfm <- quanteda::dfm(df_corpus, tolower = TRUE, stem = FALSE, select = NULL, remove = NULL, dictionary = NULL,
-                          thesaurus = NULL, valuetype = c("glob", "regex", "fixed"))
+  df_dfm <- suppressWarnings(quanteda::dfm(df_corpus, tolower = TRUE, stem = FALSE, select = NULL, remove = NULL, dictionary = NULL,
+                          thesaurus = NULL, valuetype = c("glob", "regex", "fixed")))
   #politeness features
   df_politeness <- politeness::politeness(df$text, parser="spacy",drop_blank = TRUE, metric = "average")
   df$For.Me <- if (!is.null(df_politeness$For.Me)) {df$For.Me <- df_politeness$For.Me} else {df$For.Me <- 0}
@@ -292,8 +293,7 @@ for (i in 1:nrow(df)) {
                                             "negative_polarity","n_before_subj","hello","post_sentence_verb_nouns","cue_word_frequency","education_words")
   df$competence_predictions <- competence_predictions
   # return
-  if(metrics[1] == "features") (return(cbind(ID = df$ID, as.data.frame(competence_features1))))
-  if(metrics[1] == "all") (return(cbind(ID = df$ID, competence_predictions = df$competence_predictions, as.data.frame(competence_features1))))
+  if(metrics[1] == "features") (return(cbind(ID = df$ID, as.data.frame(competence_features_output))))
+  if(metrics[1] == "all") (return(cbind(ID = df$ID, competence_predictions = df$competence_predictions, as.data.frame(competence_features_output))))
   if(metrics[1] == "scores") (return(df[, c("ID", "competence_predictions")]))}
-
 
