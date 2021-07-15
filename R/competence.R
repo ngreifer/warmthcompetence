@@ -6,6 +6,7 @@
 #'     others attribute the individual who wrote the self-presentational text.
 #'     The function also contains a metrics argument that enables users to also return the raw features used to assess competence perceptions.
 #' @param text character A vector of texts, each of which will be assessed for competence.
+#' @importFrom plyr .
 #' @param ID character A vector of IDs that will be used to identify the competence scores.
 #' @param metrics character An argument that allows users to decide what metrics to return. Users can return the competence scores (metrics = "scores"),
 #'     the features that underlie the competence scores (metrics = "features"), or both the competence scores and the features (metrics = "all).
@@ -23,9 +24,29 @@
 #' Rinker, T. W. (2019). sentimentr: Calculate Text Polarity Sentiment version 2.7.1. http://github.com/trinker/sentimentr
 #' Boyd, R. L. (2017). TAPA: Textual Affective Properties Analyzer (v.1.1.0) [Software]. Available from https://www.ryanboyd.io/software/tapa
 
+# #TESTING
+# competence_scores <- competence(vignette_data$Message, vignette_data$ResponseId, metrics = "all")
+#
+# vignette_data$competence_predictions <- competence_scores$competence_predictions
+#
+# competence_model2 <- lm(RA_comp_AVG  ~ competence_predictions, data = vignette_data)
+# summary(competence_model2)
 
 ##default for metrics is score
 competence<- function(text, ID, metrics = c("scores", "features", "all")){
+
+  #For CRAN check
+ doc_id <- sentence_id<- tag<- token_id<- pos<- head_token_id<- dep_rel<- VBZ.y<- pre_TO_PART1_main<- nounphrase<- token<- NULL
+ HAL<- amplification<- emotion_type<- ave_emotion<- y_pol<-  Warmth.Rating<- Hello<- Please<- NULL
+  social_words = social_words
+  environmental_words  = environmental_words
+  education_words  = education_words
+  linking_verbs  = linking_verbs
+  helping_verbs  =  helping_verbs
+  single_words_dic  = single_words_dic
+  W_C_ratings  = W_C_ratings
+  competence_enet_final = competence_enet_final
+
   #word count and text objects
   df <- data.frame(text, ID)
   df$WC <- apply(df %>% dplyr::select(text), 1, ngram::wordcount)

@@ -6,6 +6,7 @@
 #'     others attribute the individual who wrote the self-presentational text.
 #'     The function also contains a metrics argument that enables users to also return the raw features used to assess warmth perceptions.
 #' @param text character A vector of texts, each of which will be assessed for warmth.
+#' @importFrom plyr .
 #' @param ID character A vector of IDs that will be used to identify the warmth scores.
 #' @param metrics character An argument that allows users to decide what metrics to return. Users can return the warmth scores (metrics = "scores"),
 #'     the features that underlie the warmth scores (metrics = "features"), or both the warmth scores and the features (metrics = "all).
@@ -23,9 +24,30 @@
 #' Rinker, T. W. (2019). sentimentr: Calculate Text Polarity Sentiment version 2.7.1. http://github.com/trinker/sentimentr
 #' Boyd, R. L. (2017). TAPA: Textual Affective Properties Analyzer (v.1.1.0) [Software]. Available from https://www.ryanboyd.io/software/tapa
 
+# #TESTING
+# warmth_scores <- warmth(vignette_data$Message, vignette_data$ResponseId, metrics = "all")
+#
+# vignette_data$warmth_predictions <- warmth_scores$warmth_predictions
+#
+# warmth_model2 <- lm(RA_warm_AVG  ~ warmth_predictions, data = vignette_data)
+# summary(warmth_model2)
 
 ##default for metrics is score
 warmth <- function(text, ID, metrics = c("scores", "features", "all")){
+
+  #For CRAN check
+  doc_id<- sentence_id<- token_id<- pos<- head_token_id<- tag<- dep_rel<- lemma<- post_PRON1_main<- pre_TO_PART1_main<- token<- agency_try1000<- agency_try3<- NULL
+  HAL<- Type<- Authenticity<- emotion_type<- ave_emotion<- y_pol<- Hello<- Please<- NULL
+  social_words = social_words
+  environmental_words  = environmental_words
+  education_words  = education_words
+  mental_verbs = mental_verbs
+  linking_verbs  = linking_verbs
+  helping_verbs  =  helping_verbs
+  auth_dic  = auth_dic
+  single_words_dic = single_words_dic
+  warmth_enet_final = warmth_enet_final
+
   #word count and text objects
   df <- data.frame(text, ID)
   df$WC <- apply(df %>% dplyr::select(text), 1, ngram::wordcount)
