@@ -18,7 +18,6 @@
 #' @importFrom plyr .
 #' @importFrom magrittr %>%
 #' @references
-#' Yeomans, M., Kantor, A., & Tingley, D. (2018). The politeness Package: Detecting Politeness in Natural Language. R Journal, 10(2).
 #' Rinker, T. W. (2018). lexicon: Lexicon Data version 1.2.1. http://github.com/trinker/lexicon
 #' Moss, T. W., Renko, M., Block, E., & Meyskens, M. (2018). Funding the story of hybrid ventures: Crowdfunder lending preferences and linguistic hybridity. Journal of Business Venturing, 33(5), 643-659.
 #' Buchanan, E. M., Valentine, K. D., & Maxwell, N. P. (2018). LAB: Linguistic Annotated Bibliography - Shiny Application. Retrieved from http://aggieerin.com/shiny/lab_table.
@@ -64,9 +63,9 @@ competence<- function(text, ID, metrics = c("scores", "features", "all")){
   df_corpus <- quanteda::corpus(df$text, docnames = df$ID)
   df_dfm <- quanteda::dfm(df_corpus, tolower = TRUE, stem = FALSE, select = NULL, remove = NULL, dictionary = NULL,
                           thesaurus = NULL, valuetype = c("glob", "regex", "fixed"))
-  #politeness features
-  df_politeness <- politeness::politeness(df$text, parser="spacy",drop_blank = TRUE, metric = "average")
-  df$For.Me <- if (!is.null(df_politeness$For.Me)) {df$For.Me <- df_politeness$For.Me} else {df$For.Me <- 0}
+
+  df$For.Me <- (stringr::str_count(tolower(df$text), "for me")
+                +stringr::str_count(tolower(df$text), "for us"))/df$WC
 
   #sentence level spacy features
   suppressWarnings(spacy_new2A <- plyr::ddply(try, .(doc_id, sentence_id), plyr::summarize,
