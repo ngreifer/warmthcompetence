@@ -37,7 +37,7 @@
 #'summary(warmth_model2)
 #'
 #'@export
-warmth <- function(text, ID, metrics = c("scores", "features", "all")){
+warmth <- function(text, ID=NULL, metrics = c("scores", "features", "all")){
   if(is.null(ID)){
     ID=as.character(1:length(text))
   }

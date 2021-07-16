@@ -38,7 +38,7 @@
 #'
 #'
 #'@export
-competence<- function(text, ID, metrics = c("scores", "features", "all")){
+competence<- function(text, ID=NULL, metrics = c("scores", "features", "all")){
   if(is.null(ID)){
     ID=as.character(1:length(text))
   }
