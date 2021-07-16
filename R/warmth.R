@@ -38,7 +38,9 @@
 #'
 #'@export
 warmth <- function(text, ID, metrics = c("scores", "features", "all")){
-
+  if(is.null(ID)){
+    ID=as.character(1:length(text))
+  }
   #For CRAN check
   doc_id<- sentence_id<- token_id<- pos<- head_token_id<- tag<- dep_rel<- lemma<- post_PRON1_main<- pre_TO_PART1_main<- token<- agency_try1000<- agency_try3<- NULL
   HAL<- Type<- Authenticity<- emotion_type<- ave_emotion<- y_pol<- Hello<- Please<- NULL

@@ -39,7 +39,9 @@
 #'
 #'@export
 competence<- function(text, ID, metrics = c("scores", "features", "all")){
-
+  if(is.null(ID)){
+    ID=as.character(1:length(text))
+  }
   #For CRAN check
   doc_id <- sentence_id<- tag<- token_id<- pos<- head_token_id<- dep_rel<- VBZ.y<- pre_TO_PART1_main<- nounphrase<- token<- NULL
   HAL<- amplification<- emotion_type<- ave_emotion<- y_pol<-  Warmth.Rating<- Hello<- Please<- NULL
