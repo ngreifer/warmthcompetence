@@ -30,6 +30,19 @@ Assesses competence perceptions in self-presentational natural language.
 \details{
 Some features depend Spacyr which must be installed seperately in Python.
 }
+\examples{
+
+data("vignette_data")
+
+competence_scores <- competence(vignette_data$Message, vignette_data$ResponseId, metrics = "all")
+
+vignette_data$competence_predictions <- competence_scores$competence_predictions
+
+competence_model2 <- lm(RA_comp_AVG  ~ competence_predictions, data = vignette_data)
+summary(competence_model2)
+
+
+}
 \references{
 Yeomans, M., Kantor, A., & Tingley, D. (2018). The politeness Package: Detecting Politeness in Natural Language. R Journal, 10(2).
 Rinker, T. W. (2018). lexicon: Lexicon Data version 1.2.1. http://github.com/trinker/lexicon

@@ -6,7 +6,6 @@
 #'     others attribute the individual who wrote the self-presentational text.
 #'     The function also contains a metrics argument that enables users to also return the raw features used to assess competence perceptions.
 #' @param text character A vector of texts, each of which will be assessed for competence.
-#' @importFrom plyr .
 #' @param ID character A vector of IDs that will be used to identify the competence scores.
 #' @param metrics character An argument that allows users to decide what metrics to return. Users can return the competence scores (metrics = "scores"),
 #'     the features that underlie the competence scores (metrics = "features"), or both the competence scores and the features (metrics = "all).
@@ -15,32 +14,37 @@
 #' @return The default is to return a data.frame with each row containing the document identifier and the competence score.
 #'     Users can also customize what is returned through the metrics argument. If metrics = "features", then a dataframe of competence features will be
 #'     returned where each document is represented by a row. If metrics = "all", then both the competence scores and features will be returned in a data.frame.
+#'
+#' @importFrom plyr .
+#' @importFrom magrittr %>%
 #' @references
-#' Yeomans, M., Kantor, A., & Tingley, D. (2018). The politeness Package: Detecting Politeness in Natural Language. R Journal, 10(2).
 #' Rinker, T. W. (2018). lexicon: Lexicon Data version 1.2.1. http://github.com/trinker/lexicon
 #' Moss, T. W., Renko, M., Block, E., & Meyskens, M. (2018). Funding the story of hybrid ventures: Crowdfunder lending preferences and linguistic hybridity. Journal of Business Venturing, 33(5), 643-659.
 #' Buchanan, E. M., Valentine, K. D., & Maxwell, N. P. (2018). LAB: Linguistic Annotated Bibliography - Shiny Application. Retrieved from http://aggieerin.com/shiny/lab_table.
 #' Rinker, T. W. (2013). qdapDictionaries: Dictionaries to Accompany the qdap Package. 1.0.7. University at Buffalo. Buffalo, New York. http://github.com/trinker/qdapDictionaries
 #' Rinker, T. W. (2019). sentimentr: Calculate Text Polarity Sentiment version 2.7.1. http://github.com/trinker/sentimentr
 #' Boyd, R. L. (2017). TAPA: Textual Affective Properties Analyzer (v.1.1.0) [Software]. Available from https://www.ryanboyd.io/software/tapa
-#' @export
-
-
-# #TESTING
-# competence_scores <- competence(vignette_data$Message, vignette_data$ResponseId, metrics = "all")
-#
-# vignette_data$competence_predictions <- competence_scores$competence_predictions
-#
-# competence_model2 <- lm(RA_comp_AVG  ~ competence_predictions, data = vignette_data)
-# summary(competence_model2)
-
-
-##default for metrics is score
-competence<- function(text, ID, metrics = c("scores", "features", "all")){
-
+#'
+#' @examples
+#'
+#' data("vignette_data")
+#'
+#' competence_scores <- competence(vignette_data$Message, vignette_data$ResponseId, metrics = "all")
+#'
+#' vignette_data$competence_predictions <- competence_scores$competence_predictions
+#'
+#' competence_model2 <- lm(RA_comp_AVG  ~ competence_predictions, data = vignette_data)
+#' summary(competence_model2)
+#'
+#'
+#'@export
+competence<- function(text, ID=NULL, metrics = c("scores", "features", "all")){
+  if(is.null(ID)){
+    ID=as.character(1:length(text))
+  }
   #For CRAN check
- doc_id <- sentence_id<- tag<- token_id<- pos<- head_token_id<- dep_rel<- VBZ.y<- pre_TO_PART1_main<- nounphrase<- token<- NULL
- HAL<- amplification<- emotion_type<- ave_emotion<- y_pol<-  Warmth.Rating<- Hello<- Please<- NULL
+  doc_id <- sentence_id<- tag<- token_id<- pos<- head_token_id<- dep_rel<- VBZ.y<- pre_TO_PART1_main<- nounphrase<- token<- NULL
+  HAL<- amplification<- emotion_type<- ave_emotion<- y_pol<-  Warmth.Rating<- Hello<- Please<- NULL
   social_words = social_words
   environmental_words  = environmental_words
   education_words  = education_words
@@ -56,14 +60,14 @@ competence<- function(text, ID, metrics = c("scores", "features", "all")){
   tbl <- tibble::as_tibble(
     data.frame(doc_id = ID, text = text, stringsAsFactors = F)
   )
-  try <- spacyr::spacy_parse(tbl, tag = TRUE, dependency = TRUE, nounphrase = TRUE)
+  try <- spacyr::spacy_parse(tbl, tag = TRUE, dependency = TRUE, nounphrase = TRUE,entity=FALSE)
   tidy_norms_clean <- words_clean(text, ID)
   df_corpus <- quanteda::corpus(df$text, docnames = df$ID)
-  df_dfm <- suppressWarnings(quanteda::dfm(df_corpus, tolower = TRUE, stem = FALSE, select = NULL, remove = NULL, dictionary = NULL,
-                          thesaurus = NULL, valuetype = c("glob", "regex", "fixed")))
-  #politeness features
-  df_politeness <- politeness::politeness(df$text, parser="spacy",drop_blank = TRUE, metric = "average")
-  df$For.Me <- if (!is.null(df_politeness$For.Me)) {df$For.Me <- df_politeness$For.Me} else {df$For.Me <- 0}
+  df_dfm <- quanteda::dfm(df_corpus, tolower = TRUE, stem = FALSE, select = NULL, remove = NULL, dictionary = NULL,
+                          thesaurus = NULL, valuetype = c("glob", "regex", "fixed"))
+
+  df$For.Me <- (stringr::str_count(tolower(df$text), "for me")
+                +stringr::str_count(tolower(df$text), "for us"))/df$WC
 
   #sentence level spacy features
   suppressWarnings(spacy_new2A <- plyr::ddply(try, .(doc_id, sentence_id), plyr::summarize,
@@ -86,7 +90,7 @@ competence<- function(text, ID, metrics = c("scores", "features", "all")){
   options(dplyr.summarise.inform = FALSE)
   spacy_new2B <- spacy_new2A %>%
     dplyr::group_by(doc_id) %>%
-  dplyr::summarise(dplyr::across(VBZ.y:pre_TO_PART1_main, mean, na.rm = T))
+    dplyr::summarise(dplyr::across(VBZ.y:pre_TO_PART1_main, mean, na.rm = T))
   df <- dplyr::left_join(df, spacy_new2B, by = c("ID" = "doc_id"))
   #message level spacy features
   spacy_counts2 <- plyr::ddply(try, .(doc_id), plyr::summarize,
@@ -143,11 +147,11 @@ competence<- function(text, ID, metrics = c("scores", "features", "all")){
   df$environmental_words <- 0
   df$social_words <- 0
   df$education_words <- 0
-for (i in 1:nrow(df)) {
+  for (i in 1:nrow(df)) {
     for (j in 1:length(cold)) {
       if (grepl(cold[j], df$text[i], perl = TRUE, ignore.case = TRUE)) (df$cold[i] <- df$cold[i] + 1) }
-   for (j in 1:length(descent)) {
-     if (grepl(descent[j], df$text[i], perl = TRUE, ignore.case = TRUE)) (df$descent[i] <- df$descent[i] + 1) }
+    for (j in 1:length(descent)) {
+      if (grepl(descent[j], df$text[i], perl = TRUE, ignore.case = TRUE)) (df$descent[i] <- df$descent[i] + 1) }
     for (j in 1:length(passivity)) {
       if (grepl(passivity[j], df$text[i], perl = TRUE, ignore.case = TRUE)) (df$passivity[i] <- df$passivity[i] + 1) }
     for (j in 1:length(social_words$WORDS)) {
@@ -293,7 +297,15 @@ for (i in 1:nrow(df)) {
                                             "negative_polarity","n_before_subj","hello","post_sentence_verb_nouns","cue_word_frequency","education_words")
   df$competence_predictions <- competence_predictions
   # return
-  if(metrics[1] == "features") (return(cbind(ID = df$ID, as.data.frame(competence_features_output))))
-  if(metrics[1] == "all") (return(cbind(ID = df$ID, competence_predictions = df$competence_predictions, as.data.frame(competence_features_output))))
-  if(metrics[1] == "scores") (return(df[, c("ID", "competence_predictions")]))}
+  if(metrics[1] == "features"){
+    dataout=cbind(ID = df$ID, as.data.frame(competence_features1))
+  }
+  if(metrics[1] == "all"){
+    dataout=cbind(ID = df$ID, competence_predictions = df$competence_predictions, as.data.frame(competence_features1))
+  }
+  if(metrics[1] == "scores"){
+    dataout=df[, c("ID", "competence_predictions")]
+  }
 
+   return(dataout)
+}
