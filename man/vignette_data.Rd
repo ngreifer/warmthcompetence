@@ -5,12 +5,14 @@
 \alias{vignette_data}
 \title{Vignette Data}
 \format{
-A dataframe with 393 rows and 135 columns
+A dataframe with 393 rows and 11 columns
 }
 \usage{
 vignette_data
 }
 \description{
-Sample data from a study that can be used to test and explore the package
+Sample data from a study that can be used to test and explore the package. In this study, participants were asked to
+present themselves in either a warm or competent manner. Then, three judges blind to participant condition coded
+the introductions for warmth and competence.
 }
 \keyword{datasets}

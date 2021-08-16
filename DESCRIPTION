@@ -1,11 +1,11 @@
 Package: warmthcompetence
 Type: Package
 Title: Warmth and Competence Detectors
-Version: 0.1.1
+Version: 0.1.2
 Author: Bushra Guenoun, Julian Zlatev
 Maintainer: Bushra Guenoun <bushraguenoun@gmail.com>
 Description: Detects perceptions of warmth and competence in self-presentational langauge.
-    Using pre-trained ridge regression models, this package provides a numerical representation of warmth and competence perceptions. 
+    Using pre-trained enet regression models, this package provides a numerical representation of warmth and competence perceptions. 
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
@@ -21,7 +21,7 @@ Imports:
     lexicon, 
     ngram,
     qdap, 
-    qdapDictionaries, 
+    politeness,
     quanteda,
     raster, 
     sentimentr,
@@ -30,7 +30,8 @@ Imports:
     tibble, 
     tidyr, 
     tidytext, 
-    tm
+    tm,
+    quanteda.textstats
 Depends: 
     R (>= 3.5.0)
     

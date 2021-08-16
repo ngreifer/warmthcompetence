@@ -18,25 +18,21 @@
 #' @importFrom plyr .
 #' @importFrom magrittr %>%
 #' @references
-#' Rinker, T. W. (2018). lexicon: Lexicon Data version 1.2.1. http://github.com/trinker/lexicon
-#' Moss, T. W., Renko, M., Block, E., & Meyskens, M. (2018). Funding the story of hybrid ventures: Crowdfunder lending preferences and linguistic hybridity. Journal of Business Venturing, 33(5), 643-659.
+#' Benoit K, Watanabe K, Wang H, Nulty P, Obeng A, Müller S, Matsuo A (2018). “quanteda: An R package for the quantitative analysis of textual data.” Journal of Open Source Software, 3(30), 774. doi: 10.21105/joss.00774, https://quanteda.io.
 #' Buchanan, E. M., Valentine, K. D., & Maxwell, N. P. (2018). LAB: Linguistic Annotated Bibliography - Shiny Application. Retrieved from http://aggieerin.com/shiny/lab_table.
+#' Rinker, T. W. (2018). lexicon: Lexicon Data version 1.2.1. http://github.com/trinker/lexicon
 #' Rinker, T. W. (2019). sentimentr: Calculate Text Polarity Sentiment version 2.7.1. http://github.com/trinker/sentimentr
-#' Boyd, R. L. (2017). TAPA: Textual Affective Properties Analyzer (v.1.1.0) [Software]. Available from https://www.ryanboyd.io/software/tapa
+#' Yeomans, M., Kantor, A. & Tingley, D. (2018). Detecting Politeness in Natural Language. The R Journal, 10(2), 489-502.
 #'
 #'@examples
 #'
-# data("vignette_data")
-#
-# warmth_scores <- warmth(data$Message, metrics = "all")
-#
-# vignette_data2$warmth_predictions <- warmth_scores$warmth_predictions
-#
-# warmth_model1 <- lm(RA_warm_AVG  ~ warmth_predictions, data = vignette_data2)
-# summary(warmth_model1)
-# vignette_data2$condition <- as.factor(vignette_data2$condition)
-# warmth_model2 <- glm(condition ~ warmth_predictions, family = "binomial", data = vignette_data2)
-# summary(warmth_model2)
+#'data("example_data")
+#'
+#'warmth_scores <- warmth(example_data$bio, metrics = "all")
+#'
+#'example_data$warmth_predictions <- warmth_scores$warmth_predictions
+#'warmth_model1 <- lm(RA_warm_AVG  ~ warmth_predictions, data = example_data)
+#'summary(warmth_model1)
 #'
 #'@export
 warmth <- function(text, ID=NULL, metrics = c("scores", "features", "all")){
@@ -45,6 +41,7 @@ warmth <- function(text, ID=NULL, metrics = c("scores", "features", "all")){
   }
   #For CRAN check
   doc_id<- sentence_id<- token_id<- head_token_id<- tag<- pos <-dep_rel<- token<- nounphrase <- agency_try1000<- agency_try3<- NULL
+  DT.y <- dfm <- post_NNS_NOUN1_ROOT <- pre_adv2_subj <- tokens <- NULL
   HAL<- emotion_type<- ave_emotion<- Hello<- Please<- NULL
   mental_verbs = mental_verbs
   single_words_dic  = single_words_dic
@@ -59,8 +56,8 @@ warmth <- function(text, ID=NULL, metrics = c("scores", "features", "all")){
   try <- spacyr::spacy_parse(tbl, tag = TRUE, dependency = TRUE, nounphrase = TRUE,entity=FALSE)
   tidy_norms_clean <- words_clean(text, ID)
   df_corpus <- quanteda::corpus(df$text, docnames = df$ID)
-  df_dfm <- dfm(
-    tokens(df_corpus),
+  df_dfm <- quanteda::dfm(
+    quanteda::tokens(df_corpus),
     tolower = TRUE,
     select = NULL,
     remove = NULL,

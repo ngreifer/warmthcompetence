@@ -4,7 +4,7 @@
 \alias{warmth}
 \title{Warmth Detector}
 \usage{
-warmth(text, ID, metrics = c("scores", "features", "all"))
+warmth(text, ID = NULL, metrics = c("scores", "features", "all"))
 }
 \arguments{
 \item{text}{character A vector of texts, each of which will be assessed for warmth.}
@@ -32,22 +32,19 @@ Some features depend Spacyr which must be installed seperately in Python.
 }
 \examples{
 
-data("vignette_data")
+data("example_data")
 
-warmth_scores <- warmth(vignette_data$Message, vignette_data$ResponseId, metrics = "all")
+warmth_scores <- warmth(example_data$bio, metrics = "all")
 
-vignette_data$warmth_predictions <- warmth_scores$warmth_predictions
-
-warmth_model2 <- lm(RA_warm_AVG  ~ warmth_predictions, data = vignette_data)
-summary(warmth_model2)
+example_data$warmth_predictions <- warmth_scores$warmth_predictions
+warmth_model1 <- lm(RA_warm_AVG  ~ warmth_predictions, data = example_data)
+summary(warmth_model1)
 
 }
 \references{
-Yeomans, M., Kantor, A., & Tingley, D. (2018). The politeness Package: Detecting Politeness in Natural Language. R Journal, 10(2).
-Rinker, T. W. (2018). lexicon: Lexicon Data version 1.2.1. http://github.com/trinker/lexicon
-Moss, T. W., Renko, M., Block, E., & Meyskens, M. (2018). Funding the story of hybrid ventures: Crowdfunder lending preferences and linguistic hybridity. Journal of Business Venturing, 33(5), 643-659.
+Benoit K, Watanabe K, Wang H, Nulty P, Obeng A, Müller S, Matsuo A (2018). “quanteda: An R package for the quantitative analysis of textual data.” Journal of Open Source Software, 3(30), 774. doi: 10.21105/joss.00774, https://quanteda.io.
 Buchanan, E. M., Valentine, K. D., & Maxwell, N. P. (2018). LAB: Linguistic Annotated Bibliography - Shiny Application. Retrieved from http://aggieerin.com/shiny/lab_table.
-Rinker, T. W. (2013). qdapDictionaries: Dictionaries to Accompany the qdap Package. 1.0.7. University at Buffalo. Buffalo, New York. http://github.com/trinker/qdapDictionaries
+Rinker, T. W. (2018). lexicon: Lexicon Data version 1.2.1. http://github.com/trinker/lexicon
 Rinker, T. W. (2019). sentimentr: Calculate Text Polarity Sentiment version 2.7.1. http://github.com/trinker/sentimentr
-Boyd, R. L. (2017). TAPA: Textual Affective Properties Analyzer (v.1.1.0) [Software]. Available from https://www.ryanboyd.io/software/tapa
+Yeomans, M., Kantor, A. & Tingley, D. (2018). Detecting Politeness in Natural Language. The R Journal, 10(2), 489-502.
 }
