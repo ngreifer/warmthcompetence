@@ -63,10 +63,11 @@ First we run the functions on the study data.
 
 ```{r echo = TRUE, eval=TRUE}
 library("warmthcompetence")
+data("example_data")
 ```
 
 ```{r echo = TRUE, eval=TRUE}
-competence_scores <- competence(warmthcompetence::example_data$bio, warmthcompetence::example_data$ResponseId)
+competence_scores <- competence(example_data$bio, example_data$ResponseId)
 warmth_scores <- warmth(example_data$bio, example_data$ResponseId)
 both_scores <- dplyr::inner_join(competence_scores, warmth_scores, by = c("ID" = "ID"))
 all_data <- dplyr::left_join(example_data, both_scores, by = c("ResponseId" = "ID"))
