@@ -9,7 +9,7 @@ This package has yet to be submitted to the Comprehensive R Archive Network (Hor
 install_github("bushraguenoun/warmthcompetence")
 library("warmthcompetence")
 ``` 
-Note that some features depend Spacyr which must be installed seperately in Python. To install spacyr, follow the instructions here: https://www.rdocumentation.org/packages/spacyr/versions/1.2.1
+Note that some features depend spacyr which must be installed seperately through Python. To install spacyr, follow the instructions here: https://www.rdocumentation.org/packages/spacyr/versions/1.2.1
 
 ## Usage
 
