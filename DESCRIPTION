@@ -4,7 +4,7 @@ Title: Warmth and Competence Detectors
 Version: 0.1.2
 Author: Bushra Guenoun, Julian Zlatev
 Maintainer: Bushra Guenoun <bushraguenoun@gmail.com>
-Description: Detects perceptions of warmth and competence in self-presentational language.
+Description: Detects perceptions of warmth and competence in English self-presentational language.
     Using pre-trained enet regression models, this package provides a numerical representation of warmth and competence perceptions. 
 License: MIT + file LICENSE
 Encoding: UTF-8
@@ -34,4 +34,7 @@ Imports:
     quanteda.textstats
 Depends: 
     R (>= 3.5.0)
-    
+Suggests: 
+    rmarkdown,
+    knitr
+VignetteBuilder: knitr

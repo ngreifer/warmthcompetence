@@ -31,7 +31,6 @@ Assesses warmth perceptions in self-presentational natural language.
 Some features depend Spacyr which must be installed seperately in Python.
 }
 \examples{
-
 data("example_data")
 
 warmth_scores <- warmth(example_data$bio, metrics = "all")
@@ -39,6 +38,7 @@ warmth_scores <- warmth(example_data$bio, metrics = "all")
 example_data$warmth_predictions <- warmth_scores$warmth_predictions
 warmth_model1 <- lm(RA_warm_AVG  ~ warmth_predictions, data = example_data)
 summary(warmth_model1)
+
 
 }
 \references{

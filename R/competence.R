@@ -24,7 +24,6 @@
 #' Rinker, T. W. (2019). sentimentr: Calculate Text Polarity Sentiment version 2.7.1. http://github.com/trinker/sentimentr
 #' Yeomans, M., Kantor, A. & Tingley, D. (2018). Detecting Politeness in Natural Language. The R Journal, 10(2), 489-502.
 #'
-#' \donttest{
 #' @examples
 #' data("example_data")
 #'
@@ -33,7 +32,7 @@
 #' example_data$competence_predictions <- competence_scores$competence_predictions
 #' competence_model1 <- lm(RA_comp_AVG  ~ competence_predictions, data = example_data)
 #' summary(competence_model1)
-#' }
+#
 #'
 #'@export
 competence<- function(text, ID=NULL, metrics = c("scores", "features", "all")){
