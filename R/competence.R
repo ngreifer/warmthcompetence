@@ -130,8 +130,8 @@ competence<- function(text, ID=NULL, metrics = c("scores", "features", "all")){
 
   ##Competence Codings
   W_C_df <- dplyr::inner_join(tidy_norms_clean, W_C_ratings, by = c("word" = "Word"), ignore_case = TRUE)
-  Positive_Comp <- W_C_df[W_C_df$`Competence Rating` == '1',]
-  Positive_Comp_Scores <- plyr::ddply(Positive_Comp,.(ID),plyr::summarize,Positive_Comp = sum(`Competence Rating`, na.rm = TRUE))
+  Positive_Comp <- W_C_df[W_C_df$Competence.Rating == '1',]
+  Positive_Comp_Scores <- plyr::ddply(Positive_Comp,.(ID),plyr::summarize,Positive_Comp = sum(Competence.Rating, na.rm = TRUE))
   df <- dplyr::left_join(df, Positive_Comp_Scores, by = c("ID" = "ID"))
   df$Positive_Comp <- df$Positive_Comp/ df$WC
 
