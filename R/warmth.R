@@ -207,8 +207,8 @@ warmth <- function(text, ID=NULL, metrics = c("scores", "features", "all")){
 
   ##Warmth Codings
   W_C_df <- dplyr::inner_join(tidy_norms_clean, W_C_ratings, by = c("word" = "Word"), ignore_case = TRUE)
-  Positive_Warm <- W_C_df[W_C_df$Warmth.Rating == '1',]
-  Positive_Warm_Scores <- plyr::ddply(Positive_Warm,.(ID),plyr::summarize,Positive_Warm = sum(Warmth.Rating, na.rm = TRUE))
+  Positive_Warm <- W_C_df[W_C_df$'Warmth Rating' == '1',]
+  Positive_Warm_Scores <- plyr::ddply(Positive_Warm,.(ID),plyr::summarize,Positive_Warm = sum('Warmth Rating', na.rm = TRUE))
   df <- dplyr::left_join(df, Positive_Warm_Scores, by = c("ID" = "ID"))
   df$Positive_Warm <- df$Positive_Warm/ df$WC
 
