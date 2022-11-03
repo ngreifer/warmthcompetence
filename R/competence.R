@@ -87,11 +87,11 @@ competence<- function(text, ID=NULL, metrics = c("scores", "features", "all")){
   }
 
 
-  tidy_words_scores <- plyr::ddply(tidy_norms_clean,.(ID),plyr::summarize,
+  tidy_words_scores <- plyr::ddply(tidy_norms_clean,.(ID),dplyr::summarise,
                                    tone_neg_words = sum(tone_neg_words, na.rm = TRUE),
                                    Prevention_words = sum(Prevention_words, na.rm = TRUE),
                                    forward_words = sum(forward_words, na.rm = TRUE),
-                                   bundle_1C = sum(bundle_1, na.rm = TRUE)/nrow(tidy_norms_clean)
+                                   bundle_1C = sum(bundle_1, na.rm = TRUE)/(nrow(tidy_norms_clean))
   )
   df <- dplyr::left_join(df, tidy_words_scores, by = c("ID" = "ID"))
   ##purposefully not controlling prevention by WC
