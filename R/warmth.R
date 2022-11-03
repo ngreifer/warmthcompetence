@@ -68,7 +68,7 @@ warmth <- function(text, ID=NULL, metrics = c("scores", "features", "all")){
       tidy_norms_clean$finance_words[i] =  1
     if (tolower(tidy_norms_clean$word[i]) %in% qdapDictionaries::strong.words)
       tidy_norms_clean$strong_words[i] =  1}
-  tidy_words_scores <- plyr::ddply(tidy_norms_clean,.(ID),summarise,
+  tidy_words_scores <- plyr::ddply(tidy_norms_clean,.(ID),plyr::summarize,
                                    Courage_words = sum(Courage_words, na.rm = TRUE),
                                    Warmth_words = sum(Warmth_words, na.rm = TRUE),
                                    finance_words = sum(finance_words, na.rm = TRUE),
@@ -105,7 +105,7 @@ warmth <- function(text, ID=NULL, metrics = c("scores", "features", "all")){
 
   #Psycholingustic features
   psy_ling_df <- dplyr::inner_join(tidy_norms_clean, psy_ling_dic, by = c("word" = "Symbol"), ignore_case = TRUE)
-  psy_ling_scores <- plyr::ddply(psy_ling_df,.(ID),summarise,
+  psy_ling_scores <- plyr::ddply(psy_ling_df,.(ID),plyr::summarize,
                                  AoA = sum(AoA, na.rm = TRUE),
                                  Image = sum(Imagery, na.rm = TRUE))
   df <- dplyr::left_join(df, psy_ling_scores, by = c("ID" = "ID"))
@@ -120,10 +120,8 @@ warmth <- function(text, ID=NULL, metrics = c("scores", "features", "all")){
     if (tidy_norms_clean$word[i] %in% polysemic)
     {tidy_norms_clean$polysemic[i] =  1}
   }
-  discourse_scores <- plyr::ddply(tidy_norms_clean,.(ID),summarise,
+  discourse_scores <- plyr::ddply(tidy_norms_clean,.(ID),plyr::summarize,
                                   polysemic = sum(polysemic, na.rm = TRUE))
-
-  summary(discourse_scores)
   ref <- as.data.frame(df$ID)
   names(ref)[names(ref) == 'df$ID'] <- 'ID'
   ref$polysemic2 <- 0
@@ -144,7 +142,7 @@ warmth <- function(text, ID=NULL, metrics = c("scores", "features", "all")){
 
   ##LabMT
   labMT_values <- dplyr::inner_join(tidy_norms_clean, qdapDictionaries::labMT, by = c("word" = "word"), ignore_case = TRUE)
-  labMT_values <- plyr::ddply(labMT_values,.(ID),summarise,
+  labMT_values <- plyr::ddply(labMT_values,.(ID),plyr::summarize,
                               happiness_rank = sum(happiness_rank, na.rm = TRUE))
   df <- dplyr::left_join(df, labMT_values, by = c("ID" = "ID"))
   df$happiness_rank <- df$happiness_rank / df$WC
@@ -203,14 +201,14 @@ warmth <- function(text, ID=NULL, metrics = c("scores", "features", "all")){
   norms_dic <- norms_dic[,c("Symbol", "Concreteness")]
   norms_df <- dplyr::inner_join(tidy_norms_clean, norms_dic, by = c("word" = "Symbol"), ignore_case = TRUE)
 
-  norms_scores <- plyr::ddply(norms_df,.(ID),summarise,Concreteness = sum(Concreteness,  na.rm = TRUE))
+  norms_scores <- plyr::ddply(norms_df,.(ID),plyr::summarize,Concreteness = sum(Concreteness,  na.rm = TRUE))
   df <- dplyr::left_join(df, norms_scores, by = c("ID" = "ID"))
   df$Concreteness <- df$Concreteness/ df$WC
 
   ##Warmth Codings
   W_C_df <- dplyr::inner_join(tidy_norms_clean, W_C_ratings, by = c("word" = "Word"), ignore_case = TRUE)
   Positive_Warm <- W_C_df[W_C_df$`Warmth Rating` == '1',]
-  Positive_Warm_Scores <- plyr::ddply(Positive_Warm,.(ID),summarise,Positive_Warm = sum(`Warmth Rating`, na.rm = TRUE))
+  Positive_Warm_Scores <- plyr::ddply(Positive_Warm,.(ID),plyr::summarize,Positive_Warm = sum(`Warmth Rating`, na.rm = TRUE))
   df <- dplyr::left_join(df, Positive_Warm_Scores, by = c("ID" = "ID"))
   df$Positive_Warm <- df$Positive_Warm/ df$WC
 

@@ -87,7 +87,7 @@ competence<- function(text, ID=NULL, metrics = c("scores", "features", "all")){
   }
 
 
-  tidy_words_scores <- plyr::ddply(tidy_norms_clean,.(ID),summarise,
+  tidy_words_scores <- plyr::ddply(tidy_norms_clean,.(ID),plyr::summarize,
                                    tone_neg_words = sum(tone_neg_words, na.rm = TRUE),
                                    Prevention_words = sum(Prevention_words, na.rm = TRUE),
                                    forward_words = sum(forward_words, na.rm = TRUE),
@@ -99,7 +99,7 @@ competence<- function(text, ID=NULL, metrics = c("scores", "features", "all")){
   df$forward_words <- df$forward_words/ df$WC
 
   #message level spacy features
-  spacy_counts2 <- plyr::ddply(try, .(doc_id), plyr::summarise,
+  spacy_counts2 <- plyr::ddply(try, .(doc_id), plyr::summarize,
                                advmod = sum(dep_rel == 'advmod'),
                                punct = sum(dep_rel == 'punct'),
                                TO = sum(tag == 'TO'),
@@ -118,7 +118,7 @@ competence<- function(text, ID=NULL, metrics = c("scores", "features", "all")){
   df$ROOT <- df$ROOT / df$WC
 
   #sentence level spacy features
-  suppressWarnings(spacy_new2A <- plyr::ddply(try, .(doc_id, sentence_id), plyr::summarise,
+  suppressWarnings(spacy_new2A <- plyr::ddply(try, .(doc_id, sentence_id), plyr::summarize,
                                               post_JJS_ADJ2_subj = (length(token_id[tag == 'JJS' & token_id > token_id[dep_rel == "nsubj"]])/ length(token_id)),
                                               pre_NOUN2_ROOT = (length(token_id[pos == 'NOUN' & token_id < token_id[dep_rel == "ROOT"]])/ length(token_id))
   ))
@@ -131,7 +131,7 @@ competence<- function(text, ID=NULL, metrics = c("scores", "features", "all")){
   ##Competence Codings
   W_C_df <- dplyr::inner_join(tidy_norms_clean, W_C_ratings, by = c("word" = "Word"), ignore_case = TRUE)
   Positive_Comp <- W_C_df[W_C_df$`Competence Rating` == '1',]
-  Positive_Comp_Scores <- plyr::ddply(Positive_Comp,.(ID),summarise,Positive_Comp = sum(`Competence Rating`, na.rm = TRUE))
+  Positive_Comp_Scores <- plyr::ddply(Positive_Comp,.(ID),plyr::summarize,Positive_Comp = sum(`Competence Rating`, na.rm = TRUE))
   df <- dplyr::left_join(df, Positive_Comp_Scores, by = c("ID" = "ID"))
   df$Positive_Comp <- df$Positive_Comp/ df$WC
 
@@ -149,7 +149,7 @@ competence<- function(text, ID=NULL, metrics = c("scores", "features", "all")){
 
   ##Norms
   AoA_df <- dplyr::inner_join(tidy_norms_clean, AoA_dic, by = c("word" = "Symbol"))
-  AoA_scores <- plyr::ddply(AoA_df,.(ID),summarise,
+  AoA_scores <- plyr::ddply(AoA_df,.(ID),plyr::summarize,
                             AoA_Rating = sum(AoA_Rating, na.rm = TRUE))
   df <- dplyr::left_join(df, AoA_scores, by = c("ID" = "ID"))
   df$AoA_Rating <- df$AoA_Rating/ df$WC
@@ -161,7 +161,7 @@ competence<- function(text, ID=NULL, metrics = c("scores", "features", "all")){
 
   ##LabMT
   labMT_values <- dplyr::inner_join(tidy_norms_clean, qdapDictionaries::labMT, by = c("word" = "word"), ignore_case = TRUE)
-  labMT_values <- plyr::ddply(labMT_values,.(ID),summarise,
+  labMT_values <- plyr::ddply(labMT_values,.(ID),plyr::summarize,
                               happiness_rank = sum(happiness_rank, na.rm = TRUE))
   df <- dplyr::left_join(df, labMT_values, by = c("ID" = "ID"))
   df$happiness_rank <- df$happiness_rank / df$WC
@@ -173,10 +173,9 @@ competence<- function(text, ID=NULL, metrics = c("scores", "features", "all")){
     if (tidy_norms_clean$word[i] %in% vague)
     {tidy_norms_clean$vague[i] =  1}
   }
-  discourse_scores <- plyr::ddply(tidy_norms_clean,.(ID),summarise,
+  discourse_scores <- plyr::ddply(tidy_norms_clean,.(ID),plyr::summarize,
                                   vague = sum(vague, na.rm = TRUE))
 
-  summary(discourse_scores)
   ref <- as.data.frame(df$ID)
   names(ref)[names(ref) == 'df$ID'] <- 'ID'
   ref$vague2 <- 0
@@ -199,7 +198,7 @@ competence<- function(text, ID=NULL, metrics = c("scores", "features", "all")){
   temp_power <- qdapDictionaries::key.power
   colnames(temp_power)[2] <- "y_power"
   key_power <- dplyr::inner_join(tidy_norms_clean, temp_power, by = c("word" = "x"), ignore_case = TRUE)
-  key_power <- plyr::ddply(key_power,.(ID, y_power),summarise, key_power = sum(y_power, na.rm = TRUE))
+  key_power <- plyr::ddply(key_power,.(ID, y_power),plyr::summarize, key_power = sum(y_power, na.rm = TRUE))
   positive_power <- key_power[key_power$y == '1',]
   wanted <- c("ID", "key_power")
   positive_power <- positive_power[wanted]
