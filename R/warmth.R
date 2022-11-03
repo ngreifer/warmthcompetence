@@ -41,12 +41,7 @@ warmth <- function(text, ID=NULL, metrics = c("scores", "features", "all")){
     ID=as.character(1:length(text))
   }
   #For CRAN check
-  doc_id<- sentence_id<- token_id<- head_token_id<- tag<- pos <-dep_rel<- token<- nounphrase <- agency_try1000<- agency_try3<- NULL
-  DT.y <- dfm <- post_NNS_NOUN1_ROOT <- pre_adv2_subj <- tokens <- NULL
-  HAL<- emotion_type<- ave_emotion<- Hello<- Please<- NULL
-  mental_verbs = mental_verbs
-  single_words_dic  = single_words_dic
-  warmth_enet_final_reduced = warmth_enet_final_reduced
+
 
   #word count and text objects
   df <- data.frame(text, ID)
@@ -56,139 +51,193 @@ warmth <- function(text, ID=NULL, metrics = c("scores", "features", "all")){
   )
   try <- spacyr::spacy_parse(tbl, tag = TRUE, dependency = TRUE, nounphrase = TRUE,entity=FALSE)
   tidy_norms_clean <- words_clean(text, ID)
+
   df_corpus <- quanteda::corpus(df$text, docnames = df$ID)
-  df_dfm <- quanteda::dfm(
-    quanteda::tokens(df_corpus),
-    tolower = TRUE,
-    select = NULL,
-    remove = NULL,
-    dictionary = NULL,
-    thesaurus = NULL)
+
+  ## Word Lists by Tidy
+  tidy_norms_clean$Courage_words <- 0
+  tidy_norms_clean$Warmth_words <- 0
+  tidy_norms_clean$finance_words <- 0
+  tidy_norms_clean$strong_words <- 0
+  for (i in 1:nrow(tidy_norms_clean)) {
+    if (tolower(tidy_norms_clean$word[i]) %in% Courage_words$WORDS)
+      tidy_norms_clean$Courage_words[i] =  1
+    if (tolower(tidy_norms_clean$word[i]) %in% Warmth_words$WORDS)
+      tidy_norms_clean$Warmth_words[i] =  1
+    if (tolower(tidy_norms_clean$word[i]) %in% finance_words$WORDS)
+      tidy_norms_clean$finance_words[i] =  1
+    if (tolower(tidy_norms_clean$word[i]) %in% qdapDictionaries::strong.words)
+      tidy_norms_clean$strong_words[i] =  1}
+  tidy_words_scores <- plyr::ddply(tidy_norms_clean,.(ID),summarise,
+                                   Courage_words = sum(Courage_words, na.rm = TRUE),
+                                   Warmth_words = sum(Warmth_words, na.rm = TRUE),
+                                   finance_words = sum(finance_words, na.rm = TRUE),
+                                   strong_words = sum(strong_words, na.rm = TRUE))
+  df <- dplyr::left_join(df, tidy_words_scores, by = c("ID" = "ID"))
+  df$Courage_words <- df$Courage_words/ df$WC
+  df$Warmth_words <- df$Warmth_words/ df$WC
+  df$finance_words <- df$finance_words/ df$WC
+  df$strong_words <- df$strong_words/ df$WC
+
+  ## Word List by chunk
+  df$explore_words <- 0
+  df$employ_words <- 0
+  df$social_words <- 0
+  df$mental_verbs <- 0
+  for (i in 1:nrow(df)) {
+    for (j in 1:length(explore_words$WORDS)) {
+      if (grepl(explore_words$WORDS[j], tolower(df$text[i]), ignore.case = TRUE, perl = TRUE))
+      {(df$explore_words[i] <- df$explore_words[i] + 1)}}
+    for (f in 1:length(employ_words$WORDS)) {
+      if (grepl(employ_words$WORDS[f], tolower(df$text[i]), ignore.case = TRUE, perl = TRUE))
+      {(df$employ_words[i] <- df$employ_words[i] + 1)}}
+    for (j in 1:length(social_words$WORDS)) {
+      if (grepl(social_words$WORDS[j], tolower(df$text[i]), perl = TRUE, ignore.case = TRUE))
+        (df$social_words[i] <- df$social_words[i] + 1)}
+    for (j in 1:length(mental_verbs$WORDS)) {
+      if (grepl(mental_verbs$WORDS[j], tolower(df$text[i]), ignore.case = TRUE, perl = TRUE))
+      {(df$mental_verbs[i] <- df$mental_verbs[i] + 1)}
+    }}
+  df$explore_words <- df$explore_words/ df$WC
+  df$employ_words <- df$employ_words / df$WC
+  df$social_words <- df$social_words / df$WC
+  df$mental_verbs <- df$mental_verbs / df$WC
+
+  #Psycholingustic features
+  psy_ling_df <- dplyr::inner_join(tidy_norms_clean, psy_ling_dic, by = c("word" = "Symbol"), ignore_case = TRUE)
+  psy_ling_scores <- plyr::ddply(psy_ling_df,.(ID),summarise,
+                                 AoA = sum(AoA, na.rm = TRUE),
+                                 Image = sum(Imagery, na.rm = TRUE))
+  df <- dplyr::left_join(df, psy_ling_scores, by = c("ID" = "ID"))
+  df$AoA <- df$AoA/ df$WC
+  df$Image <- df$Image/ df$WC
+
+
+  ##Discourse Markers
+  polysemic <- qdapDictionaries::discourse.markers.alemany$marker[which(qdapDictionaries::discourse.markers.alemany$type == "polysemic")]
+  tidy_norms_clean$polysemic <- 0
+  for (i in 1:nrow(tidy_norms_clean)) {
+    if (tidy_norms_clean$word[i] %in% polysemic)
+    {tidy_norms_clean$polysemic[i] =  1}
+  }
+  discourse_scores <- plyr::ddply(tidy_norms_clean,.(ID),summarise,
+                                  polysemic = sum(polysemic, na.rm = TRUE))
+
+  summary(discourse_scores)
+  ref <- as.data.frame(df$ID)
+  names(ref)[names(ref) == 'df$ID'] <- 'ID'
+  ref$polysemic2 <- 0
+  for (j in 1:length(polysemic)) {
+    if (sapply(strsplit(polysemic[j], "\\s+"), length) > 1) {
+      for (i in 1:nrow(df)) {
+        if (grepl(polysemic[j], tolower(df$text[i]), ignore.case = TRUE))
+        {(ref$polysemic2[i] <- ref$polysemic2[i] + 1)}
+      }
+    }
+  }
+  discourse_scores <- dplyr::inner_join(ref, discourse_scores, by = c("ID" = "ID"))
+  discourse_scores$polysemic_ALL <- discourse_scores$polysemic + discourse_scores$polysemic2
+  vars <- c("ID",  "polysemic_ALL")
+  discourse_scores_short <- discourse_scores[vars]
+  df <- dplyr::left_join(df, discourse_scores_short, by = c("ID" = "ID"))
+  df$polysemic_ALL <- df$polysemic_ALL / df$WC
+
+  ##LabMT
+  labMT_values <- dplyr::inner_join(tidy_norms_clean, qdapDictionaries::labMT, by = c("word" = "word"), ignore_case = TRUE)
+  labMT_values <- plyr::ddply(labMT_values,.(ID),summarise,
+                              happiness_rank = sum(happiness_rank, na.rm = TRUE))
+  df <- dplyr::left_join(df, labMT_values, by = c("ID" = "ID"))
+  df$happiness_rank <- df$happiness_rank / df$WC
+
+
+  #Readability
+  readability <- quanteda.textstats::textstat_readability(df_corpus, measure = "Linsear.Write", remove_hyphens = TRUE,intermediate = FALSE)
+  readability$document <- NULL
+  df <- cbind(df, readability)
 
   #politeness
-  df_politeness <- politeness::politeness(df$text, parser="spacy", drop_blank = TRUE, metric = "average")
-  df$Negation <- if (!is.null(df_politeness$Negation)) {df$Negation <- df_politeness$Negation} else {df$Negation <- 0}
-  df$Positive.Emotion <- if (!is.null(df_politeness$Positive.Emotion)) {df$Positive.Emotion <- df_politeness$Positive.Emotion} else {df$Positive.Emotion <- 0}
-  df$Gratitude <- if (!is.null(df_politeness$Gratitude)) {df$Gratitude <- df_politeness$Gratitude} else {df$Gratitude <- 0}
-
-  #sentiment
-  sentiment <- sentimentr::sentiment_by(df$text)
-  df$ave_sentiment <- sentiment$ave_sentiment
+  df_politeness <- politeness::politeness(df$text, parser="spacy", drop_blank = FALSE, metric = "average")
+  df$Swearing <- if (!is.null(df_politeness$Swearing)) {df$Negation <- df_politeness$Swearing} else {df$Swearing <- 0}
+  df$Hello.x <- if (!is.null(df_politeness$Hello)) {df$Hello <- df_politeness$Hello} else {df$Hello <- 0}
 
   #sentence level spacy features
   suppressWarnings(spacy_new2A <- plyr::ddply(try, .(doc_id, sentence_id), dplyr::summarise,
-                                              DT.y = (length(token_id[tag == 'DT'])/ length(token_id)),
-                                              phrase_length = mean((token_id - head_token_id)/ max(token_id)),
-                                              post_NNS_NOUN1_ROOT = (length(token_id[tag == 'NNS' & token_id > token_id[dep_rel == "ROOT"]])/ length(token_id[pos == 'NOUN']))))
+                                              pre_UH_adv2_subj = (length(token_id[tag == 'UH' & token_id < token_id[dep_rel == "nsubj"]])/ length(token_id)),
+                                              post_PRP_adv1_subj = (length(token_id[tag == 'PRP' & token_id > token_id[dep_rel == "nsubj"]])/ length(token_id[tag == 'PRP'])),
+                                              post_adj1_ROOT = (length(token_id[pos == 'ADJ' & token_id > token_id[dep_rel == "ROOT"]])/ length(token_id[pos == 'ADJ'])),
+                                              post_NNS_NOUN1_subj = (length(token_id[tag == 'NNS' & token_id > token_id[dep_rel == "nsubj"]])/ length(token_id[pos == 'NOUN'])),
+                                              VB_VERB = (length(token_id[tag == 'VB'])/ length(token_id[pos == 'VERB']))
+  ))
   options(dplyr.summarise.inform = FALSE)
   spacy_new2B <- spacy_new2A %>%
     dplyr::group_by(doc_id) %>%
-    dplyr::summarise(dplyr::across(DT.y:post_NNS_NOUN1_ROOT, mean, na.rm = T))
+    dplyr::summarise(dplyr::across(pre_UH_adv2_subj:VB_VERB, mean, na.rm = T))
   df <- dplyr::left_join(df, spacy_new2B, by = c("ID" = "doc_id"))
 
   #message level spacy features
-  spacy_counts2 <- plyr::ddply(try, .(doc_id), plyr::summarize,
-                               agency_try1000 = (length(token_id[(token == 'i' | token == 'i\'m' | token == 'me'|  token == 'mine'| token == 'you'| token == 'yours')
-                                                                 & (dep_rel == 'dobj' | dep_rel == 'pobj')])),
-                               agency_try3 = (length(token_id[(tag == 'PRP')])),
-                               agency_target3000 = agency_try1000/agency_try3,
-                               INTJ.x = sum(pos == 'INTJ'),
-                               agency_try000 = (length(token_id[(token == 'i' | token == 'i\'m' | token == 'me'|  token == 'mine') & (dep_rel == 'nsubj' | dep_rel == 'csubj' | dep_rel == 'csubjpass' | dep_rel == 'nsubjpass' )])))
+  spacy_counts2 <- plyr::ddply(try, .(doc_id), plyr::summarise,
+                               poss = sum(dep_rel == 'poss'),
+                               VBG = sum(tag == 'VBG'))
   df <- dplyr::left_join(df, spacy_counts2, by = c("ID" = "doc_id"))
-  df$INTJ.x <- df$INTJ.x/ df$WC
+  df$poss <- df$poss / df$WC
+  df$VBG.x <- df$VBG / df$WC
 
+  # Emotion
+  emotion <-  suppressWarnings(sentimentr::emotion_by(df$text, emotion_dt = lexicon::hash_nrc_emotions,
+                                                      valence_shifters_dt = lexicon::hash_valence_shifters,
+                                                      drop.unused.emotions = FALSE, un.as.negation = TRUE,
+                                                      n.before = 5, n.after = 2))
+  emotion_long <- subset(emotion, select = c("element_id", "emotion_type", "ave_emotion"))
+  emotion_wide <- tidyr::spread(emotion_long, emotion_type, ave_emotion)
+  emotion_wide$element_id <- NULL
+  emotion_wide$anger_difference <- emotion_wide$anger - emotion_wide$anger_negated
+  emotion_wide$joy_difference <- emotion_wide$joy - emotion_wide$joy
+  emotion_cols <- emotion_wide[,c("disgust_negated","anger_difference", "joy_difference")]
+  df <- cbind(df, emotion_cols)
 
-  #verb features
-  df$mental_verbs <- 0
-  for (i in 1:nrow(df)) {
-    for (j in 1:length(mental_verbs$WORDS)) {
-      if (grepl(mental_verbs$WORDS[j], tolower(df$text[i]), ignore.case = TRUE, perl = TRUE)) {(df$mental_verbs[i] <- df$mental_verbs[i] + 1)} }}
-  df$mental_verbs <- df$mental_verbs/ df$WC
-
-  #single word norms
+  #Norms
   single_df <- dplyr::inner_join(tidy_norms_clean, single_words_dic, by = c("word" = "Symbol"), ignore_case = TRUE)
   single_scores <- plyr::ddply(single_df,.(ID),plyr::summarize, HAL = sum(HAL, na.rm = TRUE))
   df <- dplyr::left_join(df, single_scores, by = c("ID" = "ID"))
 
-  #bundles
-  bundle_5 <- c("hope", "love", "like", "support", "enjoy")
-  bundle_qualifiers <- c("pretty", "less", "least", "just",
-                         "somewhat", "more", "too", "so", "just", "enough",
-                         "indeed", "still", "almost", "fairly",  "even",
-                         "bit", "little")
-  tidy_norms_clean$bundle_5 <- 0
-  tidy_norms_clean$bundle_qualifiers <- 0
-  for (i in 1:nrow(tidy_norms_clean)) {
-    if (tolower(tidy_norms_clean$word[i]) %in% bundle_5) (tidy_norms_clean$bundle_5[i] =  1)
-    if (tolower(tidy_norms_clean$word[i]) %in% bundle_qualifiers) (tidy_norms_clean$bundle_qualifiers[i] =  1)}
-  words_scores <- plyr::ddply(tidy_norms_clean,.(ID),plyr::summarize,
-                              bundle_5C = sum(bundle_5, na.rm = TRUE),
-                              qualifiersC = sum(bundle_qualifiers, na.rm = TRUE))
-  words_scores$bundle_5C <- words_scores$bundle_5C/ nrow(tidy_norms_clean)
-  words_scores$qualifiersC <- words_scores$qualifiersC/ nrow(tidy_norms_clean)
-  df <- dplyr::left_join(df, words_scores, by = c("ID" = "ID"))
+  norms_dic <- norms_dic[,c("Symbol", "Concreteness")]
+  norms_df <- dplyr::inner_join(tidy_norms_clean, norms_dic, by = c("word" = "Symbol"), ignore_case = TRUE)
 
-  # Emotion
-  emotion <- sentimentr::emotion_by(df$text, emotion_dt = lexicon::hash_nrc_emotions,
-                                    valence_shifters_dt = lexicon::hash_valence_shifters,
-                                    drop.unused.emotions = FALSE, un.as.negation = TRUE,
-                                    n.before = 5, n.after = 2)
-  emotion_long <- subset(emotion, select = c("element_id", "emotion_type", "ave_emotion"))
-  emotion_wide <- tidyr::spread(emotion_long, emotion_type, ave_emotion)
-  emotion_wide$element_id <- NULL
-  names(emotion_wide)[names(emotion_wide) == 'anger'] <- 'sentiment_anger'
-  emotion_cols <- emotion_wide[,c("fear","fear_negated", "sentiment_anger")]
-  df <- cbind(df, emotion_cols)
-  df$fear_difference <- df$fear - df$fear_negated
+  norms_scores <- plyr::ddply(norms_df,.(ID),summarise,Concreteness = sum(Concreteness,  na.rm = TRUE))
+  df <- dplyr::left_join(df, norms_scores, by = c("ID" = "ID"))
+  df$Concreteness <- df$Concreteness/ df$WC
 
-  #Hello and Please
-  Hello_words <- c("hi","hello","hey")
-  Please_words <- c("please")
-  tidy_norms_clean$Hello <- 0
-  tidy_norms_clean$Please <- 0
-  for (i in 1:nrow(tidy_norms_clean)) {
-    if (tolower(tidy_norms_clean$word[i]) %in% Hello_words) (tidy_norms_clean$Hello[i] =  1)
-    if (tolower(tidy_norms_clean$word[i]) %in% Please_words) (tidy_norms_clean$Please[i] =  1)
-  }
-  Hello_scores <- plyr::ddply(tidy_norms_clean,.(ID),plyr::summarize,
-                              Hello.y = sum(Hello, na.rm = TRUE),
-                              Please = sum(Please, na.rm = TRUE))
-  df <- dplyr::left_join(df, Hello_scores, by = c("ID" = "ID"))
+  ##Warmth Codings
+  W_C_df <- dplyr::inner_join(tidy_norms_clean, W_C_ratings, by = c("word" = "Word"), ignore_case = TRUE)
+  Positive_Warm <- W_C_df[W_C_df$`Warmth Rating` == '1',]
+  Positive_Warm_Scores <- plyr::ddply(Positive_Warm,.(ID),summarise,Positive_Warm = sum(`Warmth Rating`, na.rm = TRUE))
+  df <- dplyr::left_join(df, Positive_Warm_Scores, by = c("ID" = "ID"))
+  df$Positive_Warm <- df$Positive_Warm/ df$WC
 
-  #Readability
-  readability <- quanteda.textstats::textstat_readability(df_corpus, measure = "Dale.Chall.old")
-   # remove_hyphens = TRUE,intermediate = FALSE)
-  readability$document <- NULL
-  df <- cbind(df, readability)
+  # diversity index
+  diversity <- qdap::diversity(df$text, grouping.var = df$ID)
+  collision <- diversity[,c("ID", "collision")]
+  df <- dplyr::left_join(df, collision, by = c("ID" = "ID"))
 
-  # Lexical Diversity
-  lexdiv <- quanteda.textstats::textstat_lexdiv(df_dfm,
-                                                measure = "all",
-                                                remove_numbers = TRUE,
-                                                remove_punct = TRUE,
-                                                remove_symbols = TRUE,
-                                                remove_hyphens = FALSE,
-                                                log.base = 10,
-                                                MATTR_window = 100L,
-                                                MSTTR_segment = 100L)
-  lexdiv$document <- NULL
-  df <- cbind(df, lexdiv)
 
   # Running pre-trained model
-  warmth_features <- df[,c("mental_verbs","agency_target3000","Dale.Chall.old","INTJ.x","phrase_length","post_NNS_NOUN1_ROOT",
-                           "fear_difference","HAL","qualifiersC","agency_try000","Please","DT.y","Hello.y","Positive.Emotion","Gratitude",
-                           "bundle_5C","ave_sentiment","R","sentiment_anger","Negation")]
+  warmth_features <- df[,c("Courage_words", "explore_words", "polysemic_ALL", "Warmth_words", "Linsear.Write", "Swearing",
+                           "pre_UH_adv2_subj", "post_PRP_adv1_subj", "post_adj1_ROOT", "finance_words", "VB_VERB", "anger_difference",
+                           "employ_words", "happiness_rank", "social_words", "strong_words", "mental_verbs", "Image",
+                           "post_NNS_NOUN1_subj", "HAL", "Hello.x", "poss", "Positive_Warm", "VBG.x", "disgust_negated",
+                           "Concreteness", "joy_difference", "AoA", "collision")]
   warmth_features <-  raster::as.matrix(warmth_features)
   warmth_features[is.infinite(warmth_features)] <- 0
   warmth_features[is.na(warmth_features)] <- 0
   suppressWarnings(preprocessParams1<-caret::preProcess(warmth_features, method = c("center", "scale")))
   warmth_features1 <- stats::predict(preprocessParams1, warmth_features)
-  warmth_predictions <- warmth_enet_final_reduced %>% raster::predict(warmth_features1)
+  warmth_predictions <- warmth_enet_model %>% raster::predict(warmth_features1)
   warmth_features_output <- warmth_features1
-  colnames(warmth_features_output) <- c("mental_verbs","dale_chall_readability","you_me_objects","interjections_total",
-                                        "phrase_length","post_sentence_verb_plural_nouns","fear","i_subject","determiners",
-                                        "cue_word_frequency","please","hello","qualifiers","positive_emotion","gratitude",
-                                        "postive_verbs","sentiment","lexical_diversity","anger","negation")
+  colnames(warmth_features_output) <- c("Competence_Adjectives", "Exploration_Words", "Polysemic_Discourse_Markers", "Warmth_Orientation", "Readability", "Swearing",
+                                        "Interjections_Before_Subject", "Personal_Pronouns_After_Subject", "Adjectives_After_Main_Verb", "Finance_Words", "Base_Form_Verbs", "Anger_Emotion",
+                                        "Employment_Language", "Happiness_Emotion", "Social_Orientation", "Strength_Language", "Mental_Verbs", "Imagery",
+                                        "Plural_Nouns_After_Subject", "Free_Association_Norms", "Hello", "Possession_Modifers", "Warmth_Language", "Present_Participle_Verbs", "Negated_Disgust",
+                                        "Concreteness", "Joy_Emotion", "Word_Complexity", "Lexical_Diversity")
   df$warmth_predictions <- warmth_predictions
   # return
   if(metrics[1] == "features"){
@@ -203,7 +252,3 @@ warmth <- function(text, ID=NULL, metrics = c("scores", "features", "all")){
 
   return(dataout)
 }
-
-
-
-

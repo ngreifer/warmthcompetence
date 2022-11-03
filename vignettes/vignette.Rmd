@@ -1,5 +1,5 @@
 ---
-title: "warmthcompetence vignette"
+title: "warmthcompetence Vignette"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{my-vignette}
@@ -14,10 +14,6 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup}
-library(warmthcompetence)
-```
-
 # Warmth and Competence
 
 Warmth and competence are the two main dimensions of social perception and judgement (Cuddy, Fiske & Glick, 2008). When individuals introduce or describe themselves, their audiences automatically make judgements about their warmth and competence. In this package, we provide tools that estimate warmth and competence social perceptions from natural self-presentational language. We use pre-trained enet regression models to provide numerical representations of warmth and competence perceptions.
@@ -26,10 +22,9 @@ Warmth and competence are the two main dimensions of social perception and judge
 
 This package has yet to be submitted to the Comprehensive R Archive Network (Hornik, 2021), so it is currently only available through Github. To install the package, use the following code in your R session:
 
-```{r gh-installation, eval = TRUE, cache= TRUE}
+```{r gh-installation, eval = TRUE, message = FALSE}
 devtools::install_github("bushraguenoun/warmthcompetence")
 library("warmthcompetence")
-# install.packages("spacyr")
 spacyr::spacy_initialize()
 ```
 
@@ -39,7 +34,7 @@ Note that some features depend spacyr which must be installed seperately through
 
 This package contains two main functions: warmth and competence. These functions can be used as described below:
 
-```{r eval=FALSE}
+```{r eval=FALSE, message = FALSE}
 competence_scores <- competence(text_vector, ID_vector, metrics = c("scores", "features", "all")
 warmth_scores <- warmth(text_vector, ID_vector, metrics = c("scores", "features", "all")
 ```
@@ -58,14 +53,14 @@ Please note that the full dataset from this study (vignette_data) is provided in
 
 Can our warmth model predict the average warmth ratings of the independent judges?
 
-First we run the functions on the study data.
+First we run the functions on the study data. 
 
 ```{r echo = TRUE, eval=TRUE}
-load("example_data.rda")
-competence_scores <- competence(example_data$bio, example_data$ResponseId)
-warmth_scores <- warmth(example_data$bio, example_data$ResponseId)
+load("vignette_data.rda")
+competence_scores <- competence(vignette_data$bio, vignette_data$ResponseId)
+warmth_scores <- warmth(vignette_data$bio, vignette_data$ResponseId)
 both_scores <- dplyr::inner_join(competence_scores, warmth_scores, by = c("ID" = "ID"))
-all_data <- dplyr::left_join(example_data, both_scores, by = c("ResponseId" = "ID"))
+all_data <- dplyr::left_join(vignette_data, both_scores, by = c("ResponseId" = "ID"))
 ```
 
 Then, we explore whether the warmth model predicts the warmth ratings of the independent judges.
@@ -91,4 +86,4 @@ As can be seen above, the predictions of the warmth model positively predict the
 
 ## Conclusion
 
-In this example, the warmthcompetence package pre-trained enet regression models that predict warmth and competence perceptions predicted the ratings of indepndent human judges. Feel free to use these models on your own data and reach out with any comments, questions, or concerns!
+In this example, our pre-trained enet regression models predicted the ratings of indepndent human judges. Feel free to use these models on your own data and reach out with any comments, questions, or concerns!
