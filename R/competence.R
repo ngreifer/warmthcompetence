@@ -240,6 +240,7 @@ competence<- function(text, ID=NULL, metrics = c("scores", "features", "all")){
   feat2 <- quanteda::convert(feat, to = 'data.frame')
   feat2$years <- ifelse("years" %in% colnames(feat2), feat2$years, 0 )
   feat2$year <- ifelse("year" %in% colnames(feat2), feat2$year, 0 )
+  feat2$name <- ifelse("name" %in% colnames(feat2), feat2$name, 0 )
   feat2$bundle_2 <- rowMeans(feat2[,bundle_2])
   feat3 <- feat2[,c("doc_id", "bundle_2")]
   df <- dplyr::left_join(df, feat3, by = c('ID' = 'doc_id'))
