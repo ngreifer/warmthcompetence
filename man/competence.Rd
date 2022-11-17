@@ -28,7 +28,7 @@ Assesses competence perceptions in self-presentational natural language.
     The function also contains a metrics argument that enables users to also return the raw features used to assess competence perceptions.
 }
 \details{
-Some features depend Spacyr which must be installed seperately in Python.
+Some features depend Spacyr which must be installed separately in Python.
 }
 \examples{
 data("example_data")
