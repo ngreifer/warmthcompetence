@@ -20,3 +20,9 @@ competence_scores <- competence(text_vector, ID_vector, metrics = c("scores", "f
 warmth_scores <- warmth(text_vector, ID_vector, metrics = c("scores", "features", "all"))
 ``` 
 In the code above, text_vector is the vector of texts that will be assessed for warmth or competence. ID_vector is a vector of IDs that will be used to identify the warmth or competence scores. The metrics argument allows users to decide what metrics to return. Users can return the warmth or competence scores (metrics = "scores"), the features that underlie the warmth or competencee scores (metrics = "features"), or both the warmth or competencescores and the features (metrics = "all). The default choice is to return the warmth or competence scores.
+
+## Getting Help
+
+If you have any questions or encounter any problems with the package, please submit an issue through Github.
+
+You can also contact me directly at bguenoun@hbs.edu.
