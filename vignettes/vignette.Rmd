@@ -43,20 +43,23 @@ In the code above, text_vector is the vector of texts that will be assessed for 
 
 ## Example: Warmth and Competence Signaling in Self Introductions
 
-We ran a study in which 393 participants were randomly assigned to either the warmth or competence condition and asked to write a short introduction of themselves that presented them as a [warm/competent] person. Then, we had three indpendent judges blind to participant condition rate each of the introductions for warmth and competence on a scale of 1 to 10. 
+We ran a study in which 393 participants were randomly assigned to either the warmth or competence condition and asked to write a short introduction of themselves that presented them as a [warm/competent] person. Then, we had three independent judges blind to participant condition rate each of the introductions for warmth and competence on a scale of 1 to 10. 
 
-To provide a quick example of how the warmthcompetence package can be used, 20 introductions were randomly chosen from each condition (40 introductions total) to create a reduced dataset. We will explore whether the warmth and competence models in this package can be used to predict the average warmth and competence rating of the independent judges in this reduced dataset.
+The study data can be accessed by calling "vignette_data". This command will return a dataframe with all of the data collected from the study. The columns of this dataframe are the following:
+      1)	bio: This column contains the participant introductions. 
+      2)	ResponseId: This column contains participant identifiers.
+      3)	condition: This column contains participant condition in the study (warmth versus competence).
+      4)	RA_warm_AVG: Three independent judges rated their perceptions of warmth for each participant introduction on a scale of 1 (extremely low warmth) to 10 (extremely high warmth). This column is the average across all three independent judges (α = 0.76). The individual RA ratings are in the following columns: warm_1, warm_2, and warm_3.
+      5)	RA_comp_AVG: Three independent judges rated their perceptions of competence for each participant introduction on a scale of 1 (extremely low competence) to 10 (extremely high competence). This column is the average across all three independent judges (α = 0.79). The individual RA ratings are in the following columns: comp_1, comp_2, and comp_3.
 
-Please note that the full dataset from this study (vignette_data) is provided in this package if you want to run this example with the full dataset of 393 introductions.
 
-### Predicting Warmth
+### Predicting Warmth Perceptions
 
 Can our warmth model predict the average warmth ratings of the independent judges?
 
 First we run the functions on the study data. 
 
 ```{r echo = TRUE, eval=TRUE}
-load("data/vignette_data.rda")
 competence_scores <- competence(vignette_data$bio, vignette_data$ResponseId)
 warmth_scores <- warmth(vignette_data$bio, vignette_data$ResponseId)
 both_scores <- dplyr::inner_join(competence_scores, warmth_scores, by = c("ID" = "ID"))
@@ -72,7 +75,7 @@ summary(warmth_model)
 
 As can be seen above, the predictions of the warmth model positively predict the independent judges' ratings.
 
-### Predicting Competence
+### Predicting Competence Perceptions
 
 Can our competence model predict the average competence ratings of the independent judges?
 
@@ -84,6 +87,24 @@ summary(competence_model)
 
 As can be seen above, the predictions of the warmth model positively predict the independent judges' ratings.
 
+### Predicting Participant Condition
+
+Are model predictions of competence higher for the participants asked to present themselves as a competent person compared to a warm person?
+
+```{r echo = TRUE, eval=TRUE}
+t.test(all_data$competence_predictions ~ all_data$condition)
+```
+
+As can be seen above, the model significantly predicted that participants in the competence condition expressed more competence compared to those in the warmth condition.
+
+Now, are model predictions of warmth higher for the participants asked to present themselves as a warm person compared to a competent person?
+
+```{r echo = TRUE, eval=TRUE}
+t.test(all_data$warmth_predictions ~ all_data$condition)
+```
+
+As can be seen above, the model significantly predicted that participants in the warmth condition expressed more warmth compared to those in the competence condition.
+
 ## Conclusion
 
-In this example, our pre-trained enet regression models predicted the ratings of indepndent human judges. Feel free to use these models on your own data and reach out with any comments, questions, or concerns!
+In this example, our pre-trained enet regression models predicted the ratings of independent human judges and participant judges. Feel free to use these models on your own data and reach out with any comments, questions, or concerns!
