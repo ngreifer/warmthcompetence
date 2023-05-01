@@ -39,6 +39,9 @@ competence<- function(text, ID=NULL, metrics = c("scores", "features", "all")){
   if(is.null(ID)){
     ID=as.character(1:length(text))
   }
+  else {
+    ID <- as.character(ID)
+  }
   #For CRAN check
 
 
