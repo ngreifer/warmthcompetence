@@ -12,6 +12,7 @@ words_clean <- function(text, ID){
 
   allData <- tibble::tibble(text, ID)
   allData$text_clean <- tm::stripWhitespace(tm::removePunctuation(qdap::replace_symbol(qdap::replace_abbreviation(qdap::replace_contraction(qdap::clean(text))))))
+  allData$text_clean <- tolower(allData$text_clean)
   tidy_norms_clean <- allData %>%
     dplyr::select(text_clean, ID)  %>%
     tidytext::unnest_tokens("word", text_clean, to_lower = FALSE)

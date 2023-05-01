@@ -104,7 +104,7 @@ warmth <- function(text, ID=NULL, metrics = c("scores", "features", "all")){
   df$mental_verbs <- df$mental_verbs / df$WC
 
   #Psycholingustic features
-  psy_ling_df <- dplyr::inner_join(tidy_norms_clean, psy_ling_dic, by = c("word" = "Symbol"), ignore_case = TRUE)
+  psy_ling_df <- dplyr::inner_join(tidy_norms_clean, psy_ling_dic, by = c("word" = "Symbol"))
   psy_ling_scores <- plyr::ddply(psy_ling_df,.(ID),plyr::summarize,
                                  AoA = sum(AoA, na.rm = TRUE),
                                  Image = sum(Imagery, na.rm = TRUE))
@@ -141,7 +141,7 @@ warmth <- function(text, ID=NULL, metrics = c("scores", "features", "all")){
   df$polysemic_ALL <- df$polysemic_ALL / df$WC
 
   ##LabMT
-  labMT_values <- dplyr::inner_join(tidy_norms_clean, qdapDictionaries::labMT, by = c("word" = "word"), ignore_case = TRUE)
+  labMT_values <- dplyr::inner_join(tidy_norms_clean, qdapDictionaries::labMT, by = c("word" = "word"))
   labMT_values <- plyr::ddply(labMT_values,.(ID),plyr::summarize,
                               happiness_rank = sum(happiness_rank, na.rm = TRUE))
   df <- dplyr::left_join(df, labMT_values, by = c("ID" = "ID"))
@@ -194,19 +194,19 @@ warmth <- function(text, ID=NULL, metrics = c("scores", "features", "all")){
   df <- cbind(df, emotion_cols)
 
   #Norms
-  single_df <- dplyr::inner_join(tidy_norms_clean, single_words_dic, by = c("word" = "Symbol"), ignore_case = TRUE)
+  single_df <- dplyr::inner_join(tidy_norms_clean, single_words_dic, by = c("word" = "Symbol"))
   single_scores <- plyr::ddply(single_df,.(ID),plyr::summarize, HAL = sum(HAL, na.rm = TRUE))
   df <- dplyr::left_join(df, single_scores, by = c("ID" = "ID"))
 
   norms_dic <- norms_dic[,c("Symbol", "Concreteness")]
-  norms_df <- dplyr::inner_join(tidy_norms_clean, norms_dic, by = c("word" = "Symbol"), ignore_case = TRUE)
+  norms_df <- dplyr::inner_join(tidy_norms_clean, norms_dic, by = c("word" = "Symbol"))
 
   norms_scores <- plyr::ddply(norms_df,.(ID),plyr::summarize,Concreteness = sum(Concreteness,  na.rm = TRUE))
   df <- dplyr::left_join(df, norms_scores, by = c("ID" = "ID"))
   df$Concreteness <- df$Concreteness/ df$WC
 
   ##Warmth Codings
-  W_C_df <- dplyr::inner_join(tidy_norms_clean, W_C_ratings, by = c("word" = "Word"), ignore_case = TRUE)
+  W_C_df <- dplyr::inner_join(tidy_norms_clean, W_C_ratings, by = c("word" = "Word"), relationship = "many-to-many")
   Positive_Warm <- W_C_df[W_C_df$'Warmth Rating' == '1',]
   Positive_Warm$Warmth_Rating <- Positive_Warm$'Warmth Rating'
   Positive_Warm_Scores <- plyr::ddply(Positive_Warm,.(ID),plyr::summarize,Positive_Warm = sum(Warmth_Rating, na.rm = TRUE))
@@ -214,7 +214,8 @@ warmth <- function(text, ID=NULL, metrics = c("scores", "features", "all")){
   df$Positive_Warm <- df$Positive_Warm/ df$WC
 
   # diversity index
-  diversity <- qdap::diversity(df$text, grouping.var = df$ID)
+  df_short <- df[which(df$text != ""),]
+  diversity <- qdap::diversity(df_short$text, grouping.var = df_short$ID)
   collision <- diversity[,c("ID", "collision")]
   df <- dplyr::left_join(df, collision, by = c("ID" = "ID"))
 

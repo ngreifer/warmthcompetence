@@ -129,7 +129,7 @@ competence<- function(text, ID=NULL, metrics = c("scores", "features", "all")){
   df <- dplyr::left_join(df, spacy_new2B, by = c("ID" = "doc_id"))
 
   ##Competence Codings
-  W_C_df <- dplyr::inner_join(tidy_norms_clean, W_C_ratings, by = c("word" = "Word"), ignore_case = TRUE)
+  W_C_df <- dplyr::inner_join(tidy_norms_clean, W_C_ratings, by = c("word" = "Word"), relationship = "many-to-many")
   Positive_Comp <- W_C_df[W_C_df$'Competence Rating' == '1',]
   Positive_Comp$Competence_Rating <- Positive_Comp$'Competence Rating'
   Positive_Comp_Scores <- plyr::ddply(Positive_Comp,.(ID),plyr::summarize,Positive_Comp = sum(Competence_Rating, na.rm = TRUE))
@@ -155,13 +155,13 @@ competence<- function(text, ID=NULL, metrics = c("scores", "features", "all")){
   df <- dplyr::left_join(df, AoA_scores, by = c("ID" = "ID"))
   df$AoA_Rating <- df$AoA_Rating/ df$WC
 
-  single_df <- dplyr::inner_join(tidy_norms_clean, single_words_dic, by = c("word" = "Symbol"), ignore_case = TRUE)
+  single_df <- dplyr::inner_join(tidy_norms_clean, single_words_dic, by = c("word" = "Symbol"))
   single_scores <- plyr::ddply(single_df,.(ID),plyr::summarize, Ortho = sum(Ortho, na.rm = TRUE))
   df <- dplyr::left_join(df, single_scores, by = c("ID" = "ID"))
   df$Ortho <- df$Ortho/ df$WC
 
   ##LabMT
-  labMT_values <- dplyr::inner_join(tidy_norms_clean, qdapDictionaries::labMT, by = c("word" = "word"), ignore_case = TRUE)
+  labMT_values <- dplyr::inner_join(tidy_norms_clean, qdapDictionaries::labMT, by = c("word" = "word"))
   labMT_values <- plyr::ddply(labMT_values,.(ID),plyr::summarize,
                               happiness_rank = sum(happiness_rank, na.rm = TRUE))
   df <- dplyr::left_join(df, labMT_values, by = c("ID" = "ID"))
@@ -198,7 +198,7 @@ competence<- function(text, ID=NULL, metrics = c("scores", "features", "all")){
   #Power
   temp_power <- qdapDictionaries::key.power
   colnames(temp_power)[2] <- "y_power"
-  key_power <- dplyr::inner_join(tidy_norms_clean, temp_power, by = c("word" = "x"), ignore_case = TRUE)
+  key_power <- dplyr::inner_join(tidy_norms_clean, temp_power, by = c("word" = "x"))
   key_power <- plyr::ddply(key_power,.(ID, y_power),plyr::summarize, key_power = sum(y_power, na.rm = TRUE))
   positive_power <- key_power[key_power$y == '1',]
   wanted <- c("ID", "key_power")
@@ -218,7 +218,8 @@ competence<- function(text, ID=NULL, metrics = c("scores", "features", "all")){
   df <- cbind(df, readability)
 
   # Lexical Diversity
-  diversity <- qdap::diversity(df$text, grouping.var = df$ID)
+  df_short <- df[which(df$text != ""),]
+  diversity <- qdap::diversity(df_short$text, grouping.var = df_short$ID)
   shannon <- diversity[,c("ID", "shannon")]
   df <- dplyr::left_join(df, shannon, by = c("ID" = "ID"))
 
