@@ -173,6 +173,7 @@ warmth <- function(text, ID=NULL, metrics = c("scores", "features", "all")){
   spacy_new2B <- spacy_new2A %>%
     dplyr::group_by(doc_id) %>%
     dplyr::summarise(dplyr::across(pre_UH_adv2_subj:VB_VERB, mean, na.rm = T))
+  df$ID <- as.character(df$ID)
   df <- dplyr::left_join(df, spacy_new2B, by = c("ID" = "doc_id"))
 
   #message level spacy features
@@ -199,12 +200,14 @@ warmth <- function(text, ID=NULL, metrics = c("scores", "features", "all")){
   #Norms
   single_df <- dplyr::inner_join(tidy_norms_clean, single_words_dic, by = c("word" = "Symbol"))
   single_scores <- plyr::ddply(single_df,.(ID),plyr::summarize, HAL = sum(HAL, na.rm = TRUE))
+  single_scores$ID <- as.character(single_scores$ID)
   df <- dplyr::left_join(df, single_scores, by = c("ID" = "ID"))
 
   norms_dic <- norms_dic[,c("Symbol", "Concreteness")]
   norms_df <- dplyr::inner_join(tidy_norms_clean, norms_dic, by = c("word" = "Symbol"))
 
   norms_scores <- plyr::ddply(norms_df,.(ID),plyr::summarize,Concreteness = sum(Concreteness,  na.rm = TRUE))
+  norms_scores$ID <- as.character(norms_scores$ID)
   df <- dplyr::left_join(df, norms_scores, by = c("ID" = "ID"))
   df$Concreteness <- df$Concreteness/ df$WC
 
@@ -213,6 +216,7 @@ warmth <- function(text, ID=NULL, metrics = c("scores", "features", "all")){
   Positive_Warm <- W_C_df[W_C_df$'Warmth Rating' == '1',]
   Positive_Warm$Warmth_Rating <- Positive_Warm$'Warmth Rating'
   Positive_Warm_Scores <- plyr::ddply(Positive_Warm,.(ID),plyr::summarize,Positive_Warm = sum(Warmth_Rating, na.rm = TRUE))
+  Positive_Warm_Scores$ID <- as.character(Positive_Warm_Scores$ID)
   df <- dplyr::left_join(df, Positive_Warm_Scores, by = c("ID" = "ID"))
   df$Positive_Warm <- df$Positive_Warm/ df$WC
 

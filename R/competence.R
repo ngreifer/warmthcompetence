@@ -113,6 +113,7 @@ competence<- function(text, ID=NULL, metrics = c("scores", "features", "all")){
   )
 
 
+  df$ID <- as.character(df$ID)
   df <- dplyr::left_join(df, spacy_counts2, by = c("ID" = "doc_id"))
   df$advmod <- df$advmod / df$WC
   df$punct <- df$punct / df$WC
@@ -136,6 +137,7 @@ competence<- function(text, ID=NULL, metrics = c("scores", "features", "all")){
   Positive_Comp <- W_C_df[W_C_df$'Competence Rating' == '1',]
   Positive_Comp$Competence_Rating <- Positive_Comp$'Competence Rating'
   Positive_Comp_Scores <- plyr::ddply(Positive_Comp,.(ID),plyr::summarize,Positive_Comp = sum(Competence_Rating, na.rm = TRUE))
+  Positive_Comp_Scores$ID <- as.character(Positive_Comp_Scores$ID)
   df <- dplyr::left_join(df, Positive_Comp_Scores, by = c("ID" = "ID"))
   df$Positive_Comp <- df$Positive_Comp/ df$WC
 
@@ -155,11 +157,13 @@ competence<- function(text, ID=NULL, metrics = c("scores", "features", "all")){
   AoA_df <- dplyr::inner_join(tidy_norms_clean, AoA_dic, by = c("word" = "Symbol"))
   AoA_scores <- plyr::ddply(AoA_df,.(ID),plyr::summarize,
                             AoA_Rating = sum(AoA_Rating, na.rm = TRUE))
+  AoA_scores$ID <- as.character(AoA_scores$ID)
   df <- dplyr::left_join(df, AoA_scores, by = c("ID" = "ID"))
   df$AoA_Rating <- df$AoA_Rating/ df$WC
 
   single_df <- dplyr::inner_join(tidy_norms_clean, single_words_dic, by = c("word" = "Symbol"))
   single_scores <- plyr::ddply(single_df,.(ID),plyr::summarize, Ortho = sum(Ortho, na.rm = TRUE))
+  single_scores$ID <- as.character(single_scores$ID)
   df <- dplyr::left_join(df, single_scores, by = c("ID" = "ID"))
   df$Ortho <- df$Ortho/ df$WC
 
@@ -167,6 +171,7 @@ competence<- function(text, ID=NULL, metrics = c("scores", "features", "all")){
   labMT_values <- dplyr::inner_join(tidy_norms_clean, qdapDictionaries::labMT, by = c("word" = "word"))
   labMT_values <- plyr::ddply(labMT_values,.(ID),plyr::summarize,
                               happiness_rank = sum(happiness_rank, na.rm = TRUE))
+  labMT_values$ID <- as.character(labMT_values$ID)
   df <- dplyr::left_join(df, labMT_values, by = c("ID" = "ID"))
   df$happiness_rank <- df$happiness_rank / df$WC
 
@@ -191,6 +196,7 @@ competence<- function(text, ID=NULL, metrics = c("scores", "features", "all")){
       }
     }
   }
+  discourse_scores$ID <- as.character(discourse_scores$ID)
   discourse_scores <- dplyr::inner_join(ref, discourse_scores, by = c("ID" = "ID"))
   discourse_scores$vague_ALL <- discourse_scores$vague + discourse_scores$vague2
   vars <- c("ID",  "vague_ALL")
@@ -207,6 +213,7 @@ competence<- function(text, ID=NULL, metrics = c("scores", "features", "all")){
   wanted <- c("ID", "key_power")
   positive_power <- positive_power[wanted]
   colnames(positive_power)[2] <- "positive_power"
+  positive_power$ID <- as.character(positive_power$ID)
   df <- dplyr::left_join(df, positive_power, by = c("ID" = "ID"))
   df$positive_power <- df$positive_power/ df$WC
 
