@@ -217,7 +217,7 @@ warmth <- function(text, ID=NULL, metrics = c("scores", "features", "all")){
   df$Positive_Warm <- df$Positive_Warm/ df$WC
 
   # diversity index
-  df_short <- df[which(df$text != ""),]
+  df_short <- df[which(grepl("[[:alpha:]]", df$text)),]
   diversity <- qdap::diversity(df_short$text, grouping.var = df_short$ID)
   collision <- diversity[,c("ID", "collision")]
   df <- dplyr::left_join(df, collision, by = c("ID" = "ID"))
