@@ -42,7 +42,7 @@ competence<- function(text, ID=NULL, metrics = c("scores", "features", "all")){
   else {
     ID <- as.character(ID)
   }
-  if(all(grepl("[[:alpha:]]", text)))
+  if(!all(grepl("[[:alpha:]]", text)))
   {
     stop("Some entries in your dataset do not contain any words. Please remove those entries and try again.")
   }
