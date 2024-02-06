@@ -4,7 +4,7 @@
 \alias{competence}
 \title{Competence Detector}
 \usage{
-competence(text, ID = NULL, metrics = c("scores", "features", "all"))
+competence(text, ID = NULL, metrics = "scores")
 }
 \arguments{
 \item{text}{character A vector of texts, each of which will be assessed for competence.}
@@ -22,7 +22,7 @@ The default is to return a data.frame with each row containing the document iden
 }
 \description{
 Assesses competence perceptions in self-presentational natural language.
-    This function is one of the main two functions of the  \code{warmthcompetence} package.
+    This function is one of the main two functions of the \code{warmthcompetence} package.
     It takes an N-length vector of self-presentational text documents and N-length vector of document IDs and returns a competence perception score that represents how much competence
     others attribute the individual who wrote the self-presentational text.
     The function also contains a metrics argument that enables users to also return the raw features used to assess competence perceptions.
@@ -36,9 +36,8 @@ data("example_data")
 competence_scores <- competence(example_data$bio, metrics = "all")
 
 example_data$competence_predictions <- competence_scores$competence_predictions
-competence_model1 <- lm(RA_comp_AVG  ~ competence_predictions, data = example_data)
+competence_model1 <- lm(RA_comp_AVG ~ competence_predictions, data = example_data)
 summary(competence_model1)
-
 }
 \references{
 Benoit K, Watanabe K, Wang H, Nulty P, Obeng A, Müller S, Matsuo A (2018). “quanteda: An R package for the quantitative analysis of textual data.” Journal of Open Source Software, 3(30), 774. doi: 10.21105/joss.00774, https://quanteda.io.

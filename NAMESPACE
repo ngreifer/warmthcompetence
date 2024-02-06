@@ -2,5 +2,4 @@
 
 export(competence)
 export(warmth)
-importFrom(magrittr,"%>%")
-importFrom(plyr,.)
+importFrom(dplyr,.data)

@@ -6,15 +6,12 @@ Author: Bushra Guenoun, Julian Zlatev
 Maintainer: Bushra Guenoun <bushraguenoun@gmail.com>
 Description: Detects perceptions of warmth and competence in American English self-presentational language.
     Using pre-trained enet regression models, this package provides a numerical representation of warmth and competence perceptions. 
-License:  GNU AFFERO GENERAL PUBLIC LICENSE
 Encoding: UTF-8
 LazyData: true
 URL: https://github.com/bushraguenoun/warmthcompetence
 BugReports: https://github.com/bushraguenoun/warmthcompetence/issues
-RoxygenNote: 7.2.0
+RoxygenNote: 7.3.0
 Imports: 
-    magrittr, 
-    plyr, 
     spacyr, 
     caret, 
     dplyr, 
@@ -22,12 +19,11 @@ Imports:
     ngram,
     qdap, 
     politeness,
+    qdapDictionaries,
     quanteda,
-    raster, 
+    raster,
     sentimentr,
-    stringr,
-    testthat,
-    tibble, 
+    stats,
     tidyr, 
     tidytext, 
     tm,
@@ -38,3 +34,4 @@ Suggests:
     rmarkdown,
     knitr
 VignetteBuilder: knitr
+License: AGPL (>= 3)

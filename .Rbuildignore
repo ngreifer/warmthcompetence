@@ -2,3 +2,6 @@
 ^\.Rproj\.user$
 ^delete\.RData$
 ^data/\.RData$
+^paper$
+^LICENSE\.md$
+^\.DS_Store$

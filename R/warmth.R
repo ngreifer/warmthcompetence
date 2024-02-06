@@ -11,12 +11,10 @@
 #'     the features that underlie the warmth scores (metrics = "features"), or both the warmth scores and the features (metrics = "all).
 #'     The default choice is to return the warmth scores.
 #' @details Some features depend Spacyr which must be installed seperately in Python.
-#' @return The default is to return a data.frame with each row containing the document identifier and the warmth score.
+#' @returns The default is to return a data.frame with each row containing the document identifier and the warmth score.
 #'     Users can also customize what is returned through the metrics argument. If metrics = "features", then a dataframe of warmth features will be
 #'     returned where each document is represented by a row. If metrics = "all", then both the warmth scores and features will be returned in a data.frame.
 #'
-#' @importFrom plyr .
-#' @importFrom magrittr %>%
 #' @references
 #' Benoit K, Watanabe K, Wang H, Nulty P, Obeng A, Müller S, Matsuo A (2018). “quanteda: An R package for the quantitative analysis of textual data.” Journal of Open Source Software, 3(30), 774. doi: 10.21105/joss.00774, https://quanteda.io.
 #' Buchanan, E. M., Valentine, K. D., & Maxwell, N. P. (2018). LAB: Linguistic Annotated Bibliography - Shiny Application. Retrieved from http://aggieerin.com/shiny/lab_table.
@@ -36,230 +34,335 @@
 #'
 #'
 #'@export
-warmth <- function(text, ID=NULL, metrics = c("scores", "features", "all")){
-  if(is.null(ID)){
-    ID=as.character(1:length(text))
+warmth <- function(text, ID = NULL, metrics = "scores") {
+
+  if (!is.character(text)) {
+    stop("`text` must be a character vector of texts.", call. = FALSE)
+  }
+
+  if (!all(grepl("[[:alpha:]]", text))) {
+    stop("Some entries in your dataset do not contain any words. Please remove those entries and try again.",
+         call. = FALSE)
+  }
+
+  if (!is.character(metrics) || length(metrics) != 1) {
+    stop("`metrics` must be a string.", call. = FALSE)
+  }
+  metrics <- tolower(metrics)
+  metrics <- match.arg(metrics, c("scores", "features", "all"))
+
+  if (is.null(ID)) {
+    ID <- as.character(seq_along(text))
   }
   else {
     ID <- as.character(ID)
   }
-  if(!all(grepl("[[:alpha:]]", text)))
-  {
-    stop("Error: Some entries in your dataset do not contain any words. Please remove those entries and try again.")
-  }
-  #For CRAN check
-
 
   #word count and text objects
   df <- data.frame(text, ID)
-  df$WC <- apply(df %>% dplyr::select(text), 1, ngram::wordcount)
-  tbl <- tibble::as_tibble(
-    data.frame(doc_id = ID, text = text, stringsAsFactors = F)
-  )
-  try <- spacyr::spacy_parse(tbl, tag = TRUE, dependency = TRUE, nounphrase = TRUE,entity=FALSE)
+  df$WC <- vapply(df$text, ngram::wordcount, numeric(1L))
+  tbl <- dplyr::tibble(doc_id = ID, text = text)
+  try <- spacyr::spacy_parse(tbl, tag = TRUE, dependency = TRUE, nounphrase = TRUE, entity = FALSE)
   tidy_norms_clean <- words_clean(text, ID)
-
-  df_corpus <- quanteda::corpus(df$text, docnames = df$ID)
+  df_corpus <- quanteda::corpus(text, docnames = ID)
 
   ## Word Lists by Tidy
   tidy_norms_clean$Courage_words <- 0
   tidy_norms_clean$Warmth_words <- 0
   tidy_norms_clean$finance_words <- 0
   tidy_norms_clean$strong_words <- 0
-  for (i in 1:nrow(tidy_norms_clean)) {
-    if (tolower(tidy_norms_clean$word[i]) %in% Courage_words$WORDS)
-      tidy_norms_clean$Courage_words[i] =  1
-    if (tolower(tidy_norms_clean$word[i]) %in% Warmth_words$WORDS)
-      tidy_norms_clean$Warmth_words[i] =  1
-    if (tolower(tidy_norms_clean$word[i]) %in% finance_words$WORDS)
-      tidy_norms_clean$finance_words[i] =  1
-    if (tolower(tidy_norms_clean$word[i]) %in% qdapDictionaries::strong.words)
-      tidy_norms_clean$strong_words[i] =  1}
-  tidy_words_scores <- plyr::ddply(tidy_norms_clean,.(ID),plyr::summarize,
-                                   Courage_words = sum(Courage_words, na.rm = TRUE),
-                                   Warmth_words = sum(Warmth_words, na.rm = TRUE),
-                                   finance_words = sum(finance_words, na.rm = TRUE),
-                                   strong_words = sum(strong_words, na.rm = TRUE))
-  df <- dplyr::left_join(df, tidy_words_scores, by = c("ID" = "ID"))
-  df$Courage_words <- df$Courage_words/ df$WC
-  df$Warmth_words <- df$Warmth_words/ df$WC
-  df$finance_words <- df$finance_words/ df$WC
-  df$strong_words <- df$strong_words/ df$WC
+
+  tidy_norms_clean$Courage_words[tolower(tidy_norms_clean$word) %in% Courage_words$WORDS] <- 1
+  tidy_norms_clean$Warmth_words[tolower(tidy_norms_clean$word) %in% Warmth_words$WORDS] <- 1
+  tidy_norms_clean$finance_words[tolower(tidy_norms_clean$word) %in% finance_words$WORDS] <- 1
+  tidy_norms_clean$strong_words[tolower(tidy_norms_clean$word) %in% qdapDictionaries::strong.words] <- 1
+
+  tidy_words_scores <- dplyr::summarize(
+    tidy_norms_clean,
+    Courage_words = sum(.data$Courage_words, na.rm = TRUE),
+    Warmth_words = sum(.data$Warmth_words, na.rm = TRUE),
+    finance_words = sum(.data$finance_words, na.rm = TRUE),
+    strong_words = sum(.data$strong_words, na.rm = TRUE),
+    .by = .data$ID
+  )
+
+  df <- dplyr::left_join(df, tidy_words_scores,
+                         by = c("ID" = "ID"))
+  df$Courage_words <- df$Courage_words / df$WC
+  df$Warmth_words <- df$Warmth_words / df$WC
+  df$finance_words <- df$finance_words / df$WC
+  df$strong_words <- df$strong_words / df$WC
 
   ## Word List by chunk
   df$explore_words <- 0
   df$employ_words <- 0
   df$social_words <- 0
   df$mental_verbs <- 0
-  for (i in 1:nrow(df)) {
-    for (j in 1:length(explore_words$WORDS)) {
-      if (grepl(explore_words$WORDS[j], tolower(df$text[i]), ignore.case = TRUE, perl = TRUE))
-      {(df$explore_words[i] <- df$explore_words[i] + 1)}}
-    for (f in 1:length(employ_words$WORDS)) {
-      if (grepl(employ_words$WORDS[f], tolower(df$text[i]), ignore.case = TRUE, perl = TRUE))
-      {(df$employ_words[i] <- df$employ_words[i] + 1)}}
-    for (j in 1:length(social_words$WORDS)) {
-      if (grepl(social_words$WORDS[j], tolower(df$text[i]), perl = TRUE, ignore.case = TRUE))
-        (df$social_words[i] <- df$social_words[i] + 1)}
-    for (j in 1:length(mental_verbs$WORDS)) {
-      if (grepl(mental_verbs$WORDS[j], tolower(df$text[i]), ignore.case = TRUE, perl = TRUE))
-      {(df$mental_verbs[i] <- df$mental_verbs[i] + 1)}
-    }}
-  df$explore_words <- df$explore_words/ df$WC
+
+  for (i in seq_len(nrow(df))) {
+    for (j in explore_words$WORDS) {
+      if (grepl(j, tolower(df$text[i]), ignore.case = TRUE, perl = TRUE))
+        df$explore_words[i] <- df$explore_words[i] + 1
+    }
+
+    for (j in employ_words$WORDS) {
+      if (grepl(j, tolower(df$text[i]), ignore.case = TRUE, perl = TRUE))
+        df$employ_words[i] <- df$employ_words[i] + 1
+    }
+
+    for (j in social_words$WORDS) {
+      if (grepl(j, tolower(df$text[i]), perl = TRUE, ignore.case = TRUE))
+        df$social_words[i] <- df$social_words[i] + 1
+    }
+
+    for (j in mental_verbs$WORDS) {
+      if (grepl(j, tolower(df$text[i]), ignore.case = TRUE, perl = TRUE))
+        df$mental_verbs[i] <- df$mental_verbs[i] + 1
+    }
+  }
+
+  df$explore_words <- df$explore_words / df$WC
   df$employ_words <- df$employ_words / df$WC
   df$social_words <- df$social_words / df$WC
   df$mental_verbs <- df$mental_verbs / df$WC
 
   #Psycholingustic features
-  psy_ling_df <- dplyr::inner_join(tidy_norms_clean, psy_ling_dic, by = c("word" = "Symbol"))
-  psy_ling_scores <- plyr::ddply(psy_ling_df,.(ID),plyr::summarize,
-                                 AoA = sum(AoA, na.rm = TRUE),
-                                 Image = sum(Imagery, na.rm = TRUE))
-  df <- dplyr::left_join(df, psy_ling_scores, by = c("ID" = "ID"))
-  df$AoA <- df$AoA/ df$WC
-  df$Image <- df$Image/ df$WC
+  psy_ling_df <- dplyr::inner_join(tidy_norms_clean, psy_ling_dic,
+                                   by = c("word" = "Symbol"))
+
+  psy_ling_scores <- dplyr::summarize(
+    psy_ling_df,
+    AoA = sum(.data$AoA, na.rm = TRUE),
+    Image = sum(.data$Imagery, na.rm = TRUE),
+    .by = .data$ID
+  )
+
+  df <- dplyr::left_join(df, psy_ling_scores,
+                         by = c("ID" = "ID"))
+  df$AoA <- df$AoA / df$WC
+  df$Image <- df$Image / df$WC
 
 
   ##Discourse Markers
-  polysemic <- qdapDictionaries::discourse.markers.alemany$marker[which(qdapDictionaries::discourse.markers.alemany$type == "polysemic")]
-  tidy_norms_clean$polysemic <- 0
-  for (i in 1:nrow(tidy_norms_clean)) {
-    if (tidy_norms_clean$word[i] %in% polysemic)
-    {tidy_norms_clean$polysemic[i] =  1}
-  }
-  discourse_scores <- plyr::ddply(tidy_norms_clean,.(ID),plyr::summarize,
-                                  polysemic = sum(polysemic, na.rm = TRUE))
-  ref <- as.data.frame(df$ID)
-  names(ref)[names(ref) == 'df$ID'] <- 'ID'
-  ref$polysemic2 <- 0
-  for (j in 1:length(polysemic)) {
-    if (sapply(strsplit(polysemic[j], "\\s+"), length) > 1) {
-      for (i in 1:nrow(df)) {
-        if (grepl(polysemic[j], tolower(df$text[i]), ignore.case = TRUE))
-        {(ref$polysemic2[i] <- ref$polysemic2[i] + 1)}
-      }
+  polysemic <- qdapDictionaries::discourse.markers.alemany$marker[qdapDictionaries::discourse.markers.alemany$type == "polysemic"]
+  tidy_norms_clean$polysemic <- ifelse(tidy_norms_clean$word %in% polysemic, 1, 0)
+
+  discourse_scores <- dplyr::summarize(
+    tidy_norms_clean,
+    polysemic = sum(.data$polysemic, na.rm = TRUE),
+    .by = .data$ID
+  )
+
+  ref <- data.frame(ID = df$ID,
+                    polysemic2 = 0)
+
+  polysemic_splits <- strsplit(polysemic, "\\s+")
+  for (j in which(lengths(polysemic_splits) > 1)) {
+    for (i in seq_len(nrow(df))) {
+      if (grepl(polysemic[j], tolower(df$text[i]), ignore.case = TRUE))
+        ref$polysemic2[i] <- ref$polysemic2[i] + 1
     }
   }
-  discourse_scores <- dplyr::inner_join(ref, discourse_scores, by = c("ID" = "ID"))
+
+  discourse_scores <- dplyr::inner_join(ref, discourse_scores,
+                                        by = c("ID" = "ID"))
   discourse_scores$polysemic_ALL <- discourse_scores$polysemic + discourse_scores$polysemic2
-  vars <- c("ID",  "polysemic_ALL")
-  discourse_scores_short <- discourse_scores[vars]
-  df <- dplyr::left_join(df, discourse_scores_short, by = c("ID" = "ID"))
+  discourse_scores_short <- discourse_scores[c("ID",  "polysemic_ALL")]
+  df <- dplyr::left_join(df, discourse_scores_short,
+                         by = c("ID" = "ID"))
   df$polysemic_ALL <- df$polysemic_ALL / df$WC
 
   ##LabMT
-  labMT_values <- dplyr::inner_join(tidy_norms_clean, qdapDictionaries::labMT, by = c("word" = "word"))
-  labMT_values <- plyr::ddply(labMT_values,.(ID),plyr::summarize,
-                              happiness_rank = sum(happiness_rank, na.rm = TRUE))
-  df <- dplyr::left_join(df, labMT_values, by = c("ID" = "ID"))
+  labMT_values <- dplyr::inner_join(tidy_norms_clean, qdapDictionaries::labMT,
+                                    by = c("word" = "word"))
+
+  labMT_values <- dplyr::summarize(
+    labMT_values,
+    happiness_rank = sum(.data$happiness_rank, na.rm = TRUE),
+    .by = .data$ID
+  )
+
+  df <- dplyr::left_join(df, labMT_values,
+                         by = c("ID" = "ID"))
   df$happiness_rank <- df$happiness_rank / df$WC
 
 
   #Readability
-  readability <- quanteda.textstats::textstat_readability(df_corpus, measure = "Linsear.Write", remove_hyphens = TRUE,intermediate = FALSE)
-  readability$document <- NULL
-  df <- cbind(df, readability)
+  readability <- quanteda.textstats::textstat_readability(df_corpus, measure = "Linsear.Write")
+
+  df <- dplyr::left_join(df, readability,
+                         by = c("ID" = "document"))
 
   #politeness
-  df_politeness <- politeness::politeness(df$text, parser="spacy", drop_blank = FALSE, metric = "average")
-  df$Swearing <- if (!is.null(df_politeness$Swearing)) {df$Negation <- df_politeness$Swearing} else {df$Swearing <- 0}
-  df$Hello.x <- if (!is.null(df_politeness$Hello)) {df$Hello <- df_politeness$Hello} else {df$Hello <- 0}
+  df_politeness <- politeness::politeness(df$text, parser = "spacy",
+                                          drop_blank = FALSE,
+                                          metric = "average")
+  df$Swearing <- {
+    if (is.null(df_politeness$Swearing)) 0
+    else df_politeness$Swearing
+  }
 
+  df$Hello.x <- {
+    if (is.null(df_politeness$Hello)) 0
+    else df_politeness$Hello
+  }
+
+  #!
   #sentence level spacy features
-  suppressWarnings(spacy_new2A <- plyr::ddply(try, .(doc_id, sentence_id), dplyr::summarise,
-                                              pre_UH_adv2_subj = (length(token_id[tag == 'UH' & token_id < token_id[dep_rel == "nsubj"]])/ length(token_id)),
-                                              post_PRP_adv1_subj = (length(token_id[tag == 'PRP' & token_id > token_id[dep_rel == "nsubj"]])/ length(token_id[tag == 'PRP'])),
-                                              post_adj1_ROOT = (length(token_id[pos == 'ADJ' & token_id > token_id[dep_rel == "ROOT"]])/ length(token_id[pos == 'ADJ'])),
-                                              post_NNS_NOUN1_subj = (length(token_id[tag == 'NNS' & token_id > token_id[dep_rel == "nsubj"]])/ length(token_id[pos == 'NOUN'])),
-                                              VB_VERB = (length(token_id[tag == 'VB'])/ length(token_id[pos == 'VERB']))
-  ))
-  options(dplyr.summarise.inform = FALSE)
-  spacy_new2B <- spacy_new2A %>%
-    dplyr::group_by(doc_id) %>%
-    dplyr::summarise(dplyr::across(pre_UH_adv2_subj:VB_VERB, mean, na.rm = T))
-  df$ID <- as.character(df$ID)
-  df <- dplyr::left_join(df, spacy_new2B, by = c("ID" = "doc_id"))
+  # suppressWarnings(spacy_new2A <- plyr::ddply(try, .(.data$doc_id, sentence_id), dplyr::summarise,
+  #                                             pre_UH_adv2_subj = (length(token_id[tag == 'UH' & token_id < token_id[dep_rel == "nsubj"]])/ length(token_id)),
+  #                                             post_PRP_adv1_subj = (length(token_id[tag == 'PRP' & token_id > token_id[dep_rel == "nsubj"]])/ length(token_id[tag == 'PRP'])),
+  #                                             post_adj1_ROOT = (length(token_id[pos == 'ADJ' & token_id > token_id[dep_rel == "ROOT"]])/ length(token_id[pos == 'ADJ'])),
+  #                                             post_NNS_NOUN1_subj = (length(token_id[tag == 'NNS' & token_id > token_id[dep_rel == "nsubj"]])/ length(token_id[pos == 'NOUN'])),
+  #                                             VB_VERB = (length(token_id[tag == 'VB'])/ length(token_id[pos == 'VERB']))
+  # ))
+
+  ## Need to address warnings
+  spacy_new2A <- dplyr::summarize(
+    try,
+    pre_UH_adv2_subj = sum(.data$tag == 'UH' & .data$token_id < .data$token_id[.data$dep_rel == "nsubj"]) / dplyr::n(),
+    post_PRP_adv1_subj = sum(.data$tag == 'PRP' & .data$token_id > .data$token_id[.data$dep_rel == "nsubj"]) / sum(.data$tag == 'PRP'),
+    post_adj1_ROOT = sum(.data$pos == 'ADJ' & .data$token_id > .data$token_id[.data$dep_rel == "ROOT"]) / sum(.data$pos == 'ADJ'),
+    post_NNS_NOUN1_subj = sum(.data$tag == 'NNS' & .data$token_id > .data$token_id[.data$dep_rel == "nsubj"]) / sum(.data$pos == 'NOUN'),
+    VB_VERB = sum(.data$tag == 'VB') / sum(.data$pos == 'VERB'),
+    .by = c(.data$doc_id, .data$sentence_id)
+  )
+
+  spacy_new2B <- dplyr::summarize(
+    spacy_new2A,
+    dplyr::across(.data$pre_UH_adv2_subj:.data$VB_VERB, mean, na.rm = TRUE),
+    .by = .data$doc_id
+  )
+
+  df <- dplyr::left_join(df, spacy_new2B,
+                         by = c("ID" = "doc_id"))
 
   #message level spacy features
-  spacy_counts2 <- plyr::ddply(try, .(doc_id), plyr::summarise,
-                               poss = sum(dep_rel == 'poss'),
-                               VBG = sum(tag == 'VBG'))
-  df <- dplyr::left_join(df, spacy_counts2, by = c("ID" = "doc_id"))
+  spacy_counts2 <- dplyr::summarize(
+    try,
+    poss = sum(.data$dep_rel == 'poss'),
+    VBG = sum(.data$tag == 'VBG'),
+    .by = .data$doc_id
+  )
+
+  df <- dplyr::left_join(df, spacy_counts2,
+                         by = c("ID" = "doc_id"))
   df$poss <- df$poss / df$WC
   df$VBG.x <- df$VBG / df$WC
 
   # Emotion
-  emotion <-  suppressWarnings(sentimentr::emotion_by(df$text, emotion_dt = lexicon::hash_nrc_emotions,
+  emotion <- suppressWarnings(sentimentr::emotion_by(df$text, emotion_dt = lexicon::hash_nrc_emotions,
                                                       valence_shifters_dt = lexicon::hash_valence_shifters,
                                                       drop.unused.emotions = FALSE, un.as.negation = TRUE,
                                                       n.before = 5, n.after = 2))
-  emotion_long <- subset(emotion, select = c("element_id", "emotion_type", "ave_emotion"))
-  emotion_wide <- tidyr::spread(emotion_long, emotion_type, ave_emotion)
-  emotion_wide$element_id <- NULL
+  emotion$ID <- ID[emotion$element_id]
+
+  emotion_wide <- tidyr::pivot_wider(emotion[c("ID", "emotion_type", "ave_emotion")],
+                                     names_from = .data$emotion_type,
+                                     values_from = .data$ave_emotion)
+
   emotion_wide$anger_difference <- emotion_wide$anger - emotion_wide$anger_negated
   emotion_wide$joy_difference <- emotion_wide$joy - emotion_wide$joy
-  emotion_cols <- emotion_wide[,c("disgust_negated","anger_difference", "joy_difference")]
-  df <- cbind(df, emotion_cols)
+
+  df <- dplyr::left_join(df, emotion_wide[c("ID", "disgust_negated", "anger_difference", "joy_difference")],
+                         by = c("ID" = "ID"))
 
   #Norms
-  single_df <- dplyr::inner_join(tidy_norms_clean, single_words_dic, by = c("word" = "Symbol"))
-  single_scores <- plyr::ddply(single_df,.(ID),plyr::summarize, HAL = sum(HAL, na.rm = TRUE))
-  single_scores$ID <- as.character(single_scores$ID)
-  df <- dplyr::left_join(df, single_scores, by = c("ID" = "ID"))
+  single_df <- dplyr::inner_join(tidy_norms_clean, single_words_dic,
+                                 by = c("word" = "Symbol"))
 
-  norms_dic <- norms_dic[,c("Symbol", "Concreteness")]
-  norms_df <- dplyr::inner_join(tidy_norms_clean, norms_dic, by = c("word" = "Symbol"))
+  single_scores <- dplyr::summarize(
+    single_df,
+    HAL = sum(.data$HAL, na.rm = TRUE),
+    .by = .data$ID
+  )
 
-  norms_scores <- plyr::ddply(norms_df,.(ID),plyr::summarize,Concreteness = sum(Concreteness,  na.rm = TRUE))
-  norms_scores$ID <- as.character(norms_scores$ID)
-  df <- dplyr::left_join(df, norms_scores, by = c("ID" = "ID"))
-  df$Concreteness <- df$Concreteness/ df$WC
+  df <- dplyr::left_join(df, single_scores,
+                         by = c("ID" = "ID"))
+
+  norms_dic <- norms_dic[c("Symbol", "Concreteness")]
+  norms_df <- dplyr::inner_join(tidy_norms_clean, norms_dic,
+                                by = c("word" = "Symbol"))
+
+  norms_scores <- dplyr::summarize(
+    norms_df,
+    Concreteness = sum(.data$Concreteness,  na.rm = TRUE),
+    .by = .data$ID
+  )
+
+  df <- dplyr::left_join(df, norms_scores,
+                         by = c("ID" = "ID"))
+  df$Concreteness <- df$Concreteness / df$WC
 
   ##Warmth Codings
-  W_C_df <- dplyr::inner_join(tidy_norms_clean, W_C_ratings, by = c("word" = "Word"), relationship = "many-to-many")
-  Positive_Warm <- W_C_df[W_C_df$'Warmth Rating' == '1',]
-  Positive_Warm$Warmth_Rating <- Positive_Warm$'Warmth Rating'
-  Positive_Warm_Scores <- plyr::ddply(Positive_Warm,.(ID),plyr::summarize,Positive_Warm = sum(Warmth_Rating, na.rm = TRUE))
-  Positive_Warm_Scores$ID <- as.character(Positive_Warm_Scores$ID)
-  df <- dplyr::left_join(df, Positive_Warm_Scores, by = c("ID" = "ID"))
-  df$Positive_Warm <- df$Positive_Warm/ df$WC
+  W_C_df <- dplyr::inner_join(tidy_norms_clean,
+                              W_C_ratings,
+                              by = c("word" = "Word"),
+                              relationship = "many-to-many")
+
+  Positive_Warm <- W_C_df[W_C_df[['Warmth Rating']] == '1',]
+  names(Positive_Warm)[names(Positive_Warm) == 'Warmth Rating'] <- 'Warmth_Rating'
+
+  Positive_Warm_Scores <- dplyr::summarize(
+    Positive_Warm,
+    Positive_Warm = sum(.data$Warmth_Rating, na.rm = TRUE),
+    .by = .data$ID
+  )
+
+  df <- dplyr::left_join(df, Positive_Warm_Scores,
+                         by = c("ID" = "ID"))
+  df$Positive_Warm <- df$Positive_Warm / df$WC
 
   # diversity index
-  df_short <- df[which(grepl("[[:alpha:]]", df$text)),]
+  df_short <- df[grepl("[[:alpha:]]", df$text),]
   diversity <- qdap::diversity(df_short$text, grouping.var = df_short$ID)
-  collision <- diversity[,c("ID", "collision")]
-  df <- dplyr::left_join(df, collision, by = c("ID" = "ID"))
+  collision <- diversity[c("ID", "collision")]
+  df <- dplyr::left_join(df, collision,
+                         by = c("ID" = "ID"))
 
 
   # Running pre-trained model
-  warmth_features <- df[,c("Courage_words", "explore_words", "polysemic_ALL", "Warmth_words", "Linsear.Write", "Swearing",
-                           "pre_UH_adv2_subj", "post_PRP_adv1_subj", "post_adj1_ROOT", "finance_words", "VB_VERB", "anger_difference",
-                           "employ_words", "happiness_rank", "social_words", "strong_words", "mental_verbs", "Image",
-                           "post_NNS_NOUN1_subj", "HAL", "Hello.x", "poss", "Positive_Warm", "VBG.x", "disgust_negated",
+  warmth_features <- df[c("Courage_words", "explore_words",
+                          "polysemic_ALL", "Warmth_words",
+                           "Linsear.Write", "Swearing",
+                           "pre_UH_adv2_subj", "post_PRP_adv1_subj", "post_adj1_ROOT",
+                           "finance_words", "VB_VERB", "anger_difference",
+                           "employ_words", "happiness_rank", "social_words",
+                           "strong_words", "mental_verbs", "Image",
+                           "post_NNS_NOUN1_subj", "HAL", "Hello.x", "poss",
+                           "Positive_Warm", "VBG.x", "disgust_negated",
                            "Concreteness", "joy_difference", "AoA", "collision")]
-  warmth_features <-  raster::as.matrix(warmth_features)
-  warmth_features[is.infinite(warmth_features)] <- 0
-  warmth_features[is.na(warmth_features)] <- 0
-  suppressWarnings(preprocessParams1<-caret::preProcess(warmth_features, method = c("center", "scale")))
+  warmth_features <- raster::as.matrix(warmth_features)
+  warmth_features[!is.finite(warmth_features)] <- 0
+
+  suppressWarnings(preprocessParams1 <- caret::preProcess(warmth_features, method = c("center", "scale")))
   warmth_features1 <- stats::predict(preprocessParams1, warmth_features)
-  warmth_predictions <- warmth_enet_model %>% raster::predict(warmth_features1)
-  warmth_features_output <- warmth_features1
-  colnames(warmth_features_output) <- c("Competence_Adjectives", "Exploration_Words", "Polysemic_Discourse_Markers", "Warmth_Orientation", "Readability", "Swearing",
-                                        "Interjections_Before_Subject", "Personal_Pronouns_After_Subject", "Adjectives_After_Main_Verb", "Finance_Words", "Base_Form_Verbs", "Anger_Emotion",
-                                        "Employment_Language", "Happiness_Emotion", "Social_Orientation", "Strength_Language", "Mental_Verbs", "Imagery",
-                                        "Plural_Nouns_After_Subject", "Free_Association_Norms", "Hello", "Possession_Modifers", "Warmth_Language", "Present_Participle_Verbs", "Negated_Disgust",
-                                        "Concreteness", "Joy_Emotion", "Word_Complexity", "Lexical_Diversity")
-  df$warmth_predictions <- warmth_predictions
-  # return
-  if(metrics[1] == "features"){
-    dataout=cbind(ID = df$ID, as.data.frame(warmth_features1))
-  }
-  if(metrics[1] == "all"){
-    dataout=cbind(ID = df$ID, warmth_predictions = df$warmth_predictions, as.data.frame(warmth_features1))
-  }
-  if(metrics[1] == "scores"){
-    dataout=df[, c("ID", "warmth_predictions")]
+
+  out <- data.frame(ID = df$ID)
+
+  if (metrics %in% c("scores", "all")) {
+    out$warmth_predictions <- raster::predict(warmth_enet_model, warmth_features1)
   }
 
-  return(dataout)
+  if (metrics %in% c("features", "all")) {
+    colnames(warmth_features1) <- c("Competence_Adjectives", "Exploration_Words",
+                                    "Polysemic_Discourse_Markers", "Warmth_Orientation",
+                                    "Readability", "Swearing",
+                                    "Interjections_Before_Subject",
+                                    "Personal_Pronouns_After_Subject",
+                                    "Adjectives_After_Main_Verb", "Finance_Words",
+                                    "Base_Form_Verbs", "Anger_Emotion",
+                                    "Employment_Language", "Happiness_Emotion",
+                                    "Social_Orientation", "Strength_Language",
+                                    "Mental_Verbs", "Imagery",
+                                    "Plural_Nouns_After_Subject", "Free_Association_Norms",
+                                    "Hello", "Possession_Modifers", "Warmth_Language",
+                                    "Present_Participle_Verbs", "Negated_Disgust",
+                                    "Concreteness", "Joy_Emotion", "Word_Complexity",
+                                    "Lexical_Diversity")
+
+    out <- cbind(out, as.data.frame(warmth_features1))
+  }
+
+  out
 }

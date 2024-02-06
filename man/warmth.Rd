@@ -4,7 +4,7 @@
 \alias{warmth}
 \title{Warmth Detector}
 \usage{
-warmth(text, ID = NULL, metrics = c("scores", "features", "all"))
+warmth(text, ID = NULL, metrics = "scores")
 }
 \arguments{
 \item{text}{character A vector of texts, each of which will be assessed for warmth.}
