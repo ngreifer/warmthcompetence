@@ -64,6 +64,8 @@ Can our warmth model predict the average warmth ratings of the independent judge
 First we run the functions on the study data. 
 
 ```{r echo = TRUE, eval=TRUE}
+data("vignette_data")
+
 competence_scores <- competence(vignette_data$bio, vignette_data$ResponseId)
 warmth_scores <- warmth(vignette_data$bio, vignette_data$ResponseId)
 both_scores <- dplyr::inner_join(competence_scores, warmth_scores, by = c("ID" = "ID"))

@@ -1,13 +1,19 @@
 Package: warmthcompetence
 Type: Package
 Title: Warmth and Competence Detectors
-Version: 0.1.2
-Author: Bushra Guenoun, Julian Zlatev
-Maintainer: Bushra Guenoun <bushraguenoun@gmail.com>
+Version: 0.1.2.9000
+Authors@R: c(
+    person("Bushra", "Guenoun", email = "bushraguenoun@gmail.com", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0003-0975-1620")),
+    person("Julian", "Zlatev", role = c("aut"), 
+	       comment = c(ORCID="0000-0002-9427-9887")),
+    person("Noah", "Greifer", role = c("ctb"), 
+         email = "ngreifer@iq.harvard.edu",
+	       comment = c(ORCID="0000-0003-3067-7154")))
 Description: Detects perceptions of warmth and competence in American English self-presentational language.
     Using pre-trained enet regression models, this package provides a numerical representation of warmth and competence perceptions. 
+License: AGPL (>= 3)
 Encoding: UTF-8
-LazyData: true
 URL: https://github.com/bushraguenoun/warmthcompetence
 BugReports: https://github.com/bushraguenoun/warmthcompetence/issues
 RoxygenNote: 7.3.0
@@ -33,5 +39,5 @@ Depends:
 Suggests: 
     rmarkdown,
     knitr
+LazyData: true
 VignetteBuilder: knitr
-License: AGPL (>= 3)

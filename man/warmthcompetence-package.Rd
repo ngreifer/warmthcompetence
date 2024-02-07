@@ -16,4 +16,18 @@ Useful links:
 }
 
 }
+\author{
+\strong{Maintainer}: Bushra Guenoun \email{bushraguenoun@gmail.com} (\href{https://orcid.org/0000-0003-0975-1620}{ORCID})
+
+Authors:
+\itemize{
+  \item Julian Zlatev (\href{https://orcid.org/0000-0002-9427-9887}{ORCID})
+}
+
+Other contributors:
+\itemize{
+  \item Noah Greifer \email{ngreifer@iq.harvard.edu} (\href{https://orcid.org/0000-0003-3067-7154}{ORCID}) [contributor]
+}
+
+}
 \keyword{internal}
