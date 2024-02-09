@@ -73,7 +73,6 @@ competence <- function(text, ID = NULL, metrics = "scores") {
     dictionary = NULL,
     thesaurus = NULL)
 
-
   #politeness
   df_politeness <- politeness::politeness(text, parser = "spacy",
                                           drop_blank = TRUE, metric = "average")
@@ -337,7 +336,7 @@ competence <- function(text, ID = NULL, metrics = "scores") {
   out <- data.frame(ID = df$ID)
 
   if (metrics %in% c("scores", "all")) {
-    out$competence_predictions <- raster::predict(competence_enet_model, competence_features1)
+    out$competence_predictions <- stats::predict(competence_enet_model, competence_features1)
   }
 
   if (metrics %in% c("features", "all")) {

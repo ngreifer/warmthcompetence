@@ -100,26 +100,24 @@ warmth <- function(text, ID = NULL, metrics = "scores") {
   df$social_words <- 0
   df$mental_verbs <- 0
 
-  for (i in seq_len(nrow(df))) {
-    for (j in explore_words$WORDS) {
-      if (grepl(j, tolower(df$text[i]), ignore.case = TRUE, perl = TRUE))
-        df$explore_words[i] <- df$explore_words[i] + 1
-    }
+  for (j in explore_words$WORDS) {
+    j_in_text <- grepl(j, tolower(df$text), ignore.case = TRUE, perl = TRUE)
+    df$explore_words[j_in_text] <- df$explore_words[j_in_text] + 1
+  }
 
-    for (j in employ_words$WORDS) {
-      if (grepl(j, tolower(df$text[i]), ignore.case = TRUE, perl = TRUE))
-        df$employ_words[i] <- df$employ_words[i] + 1
-    }
+  for (j in employ_words$WORDS) {
+    j_in_text <- grepl(j, tolower(df$text), ignore.case = TRUE, perl = TRUE)
+    df$employ_words[j_in_text] <- df$employ_words[j_in_text] + 1
+  }
 
-    for (j in social_words$WORDS) {
-      if (grepl(j, tolower(df$text[i]), perl = TRUE, ignore.case = TRUE))
-        df$social_words[i] <- df$social_words[i] + 1
-    }
+  for (j in social_words$WORDS) {
+    j_in_text <- grepl(j, tolower(df$text), ignore.case = TRUE, perl = TRUE)
+    df$social_words[j_in_text] <- df$social_words[j_in_text] + 1
+  }
 
-    for (j in mental_verbs$WORDS) {
-      if (grepl(j, tolower(df$text[i]), ignore.case = TRUE, perl = TRUE))
-        df$mental_verbs[i] <- df$mental_verbs[i] + 1
-    }
+  for (j in mental_verbs$WORDS) {
+    j_in_text <- grepl(j, tolower(df$text), ignore.case = TRUE, perl = TRUE)
+    df$mental_verbs[j_in_text] <- df$mental_verbs[j_in_text] + 1
   }
 
   df$explore_words <- df$explore_words / df$WC
@@ -333,7 +331,7 @@ warmth <- function(text, ID = NULL, metrics = "scores") {
   out <- data.frame(ID = df$ID)
 
   if (metrics %in% c("scores", "all")) {
-    out$warmth_predictions <- raster::predict(warmth_enet_model, warmth_features1)
+    out$warmth_predictions <- stats::predict(warmth_enet_model, warmth_features1)
   }
 
   if (metrics %in% c("features", "all")) {
