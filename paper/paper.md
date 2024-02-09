@@ -30,7 +30,7 @@ The models used to evaluate warmth and competence were developed through an expl
 
 # Statement of Need
 
-When meeting or learning about someone new, research suggests that individuals make two critical judgements [@cuddy_2008]: (1) How warm is this person? (2) How competent is this person? These two perceptions then go on to influence individuals’ emotional and behavioral reactions to the new person [@fiske_2002; @fiske_2007]. 
+When meeting or learning about someone new, research suggests that individuals make two critical judgments [@cuddy_2008]: (1) How warm is this person? (2) How competent is this person? These two perceptions then go on to influence individuals’ emotional and behavioral reactions to the new person [@fiske_2002; @fiske_2007]. 
 
 Often described as the two universal dimensions of social cognition, the constructs of warmth (i.e., perceived friendliness and trustworthiness) and competence (i.e., perceived effectiveness and intellect) are foundational to research in the psychological sciences [@cuddy_2008; @fiske_2018]. These constructs are utilized by a wide range of researchers across different branches of psychology, including interpersonal relations [e.g., @holoien_2013; @judd_2005; @kervyn_2009], intergroup relations [e.g., @becker_2012; @fiske_2002; @nicolas_2021], neuroscience [e.g., @harris_2010; @li_2021; @simon_2020], and developmental psychology [e.g., @altschul_2016; @chen_2000; @roberts_1987]. Warmth and competence are also integral constructs in adjacent fields including management [e.g., @cuddy_2011; @jeong_2019], marketing [e.g., @kim_2019; @hyoyeon_2019], medicine [e.g., @drevs_2013; @kraft_2017], law [e.g., @de_2020; @neal_2012] and computer-human interaction [e.g., @nguyen_2015; @peters_2017].
 

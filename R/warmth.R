@@ -10,13 +10,13 @@
 #' @param metrics character An argument that allows users to decide what metrics to return. Users can return the warmth scores (metrics = "scores"),
 #'     the features that underlie the warmth scores (metrics = "features"), or both the warmth scores and the features (metrics = "all).
 #'     The default choice is to return the warmth scores.
-#' @details Some features depend Spacyr which must be installed seperately in Python.
+#' @details Some features depend Spacyr which must be installed separately in Python.
 #' @returns The default is to return a data.frame with each row containing the document identifier and the warmth score.
 #'     Users can also customize what is returned through the metrics argument. If metrics = "features", then a dataframe of warmth features will be
 #'     returned where each document is represented by a row. If metrics = "all", then both the warmth scores and features will be returned in a data.frame.
 #'
 #' @references
-#' Benoit K, Watanabe K, Wang H, Nulty P, Obeng A, Müller S, Matsuo A (2018). “quanteda: An R package for the quantitative analysis of textual data.” Journal of Open Source Software, 3(30), 774. doi: 10.21105/joss.00774, https://quanteda.io.
+#' Benoit K, Watanabe K, Wang H, Nulty P, Obeng A, Müller S, Matsuo A (2018). “quanteda: An R package for the quantitative analysis of textual data.” Journal of Open Source Software, 3(30), 774. \doi{10.21105/joss.00774}, https://quanteda.io.
 #' Buchanan, E. M., Valentine, K. D., & Maxwell, N. P. (2018). LAB: Linguistic Annotated Bibliography - Shiny Application. Retrieved from http://aggieerin.com/shiny/lab_table.
 #' Rinker, T. W. (2018). lexicon: Lexicon Data version 1.2.1. http://github.com/trinker/lexicon
 #' Rinker, T. W. (2019). sentimentr: Calculate Text Polarity Sentiment version 2.7.1. http://github.com/trinker/sentimentr

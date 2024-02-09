@@ -16,7 +16,7 @@ knitr::opts_chunk$set(
 
 # Warmth and Competence
 
-Warmth and competence are the two main dimensions of social perception and judgement (Cuddy, Fiske & Glick, 2008). When individuals introduce or describe themselves, their audiences automatically make judgements about their warmth and competence. In this package, we provide tools that estimate warmth and competence social perceptions from natural self-presentational language. We use pre-trained enet regression models to provide numerical representations of warmth and competence perceptions.
+Warmth and competence are the two main dimensions of social perception and judgment (Cuddy, Fiske & Glick, 2008). When individuals introduce or describe themselves, their audiences automatically make judgments about their warmth and competence. In this package, we provide tools that estimate warmth and competence social perceptions from natural self-presentational language. We use pre-trained enet regression models to provide numerical representations of warmth and competence perceptions.
 
 ## Installation
 
@@ -32,7 +32,7 @@ library("warmthcompetence")
 spacyr::spacy_initialize()
 ```
 
-Note that some features depend spacyr which must be installed seperately through Python. To install spacyr, follow the instructions here: https://www.rdocumentation.org/packages/spacyr/versions/1.2.1
+Note that some features depend spacyr which must be installed separately through Python. To install spacyr, follow the instructions here: https://www.rdocumentation.org/packages/spacyr/versions/1.2.1
 
 ## Usage
 

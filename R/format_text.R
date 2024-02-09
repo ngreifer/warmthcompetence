@@ -3,7 +3,7 @@
 #' @description Contains functions that are used by the main functions of the \code{warmthcompetence} package for text processing.
 #' @param text character A vector of texts
 #' @param ID character A vector of IDs
-#' @details Some features depend Spacyr which must be installed seperately in Python.
+#' @details Some features depend Spacyr which must be installed separately in Python.
 #' @return Tibbles that are used by the main functions of the \code{warmthcompetence} package
 #' @keywords internal
 #'

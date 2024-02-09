@@ -18,6 +18,6 @@ Tibbles that are used by the main functions of the \code{warmthcompetence} packa
 Contains functions that are used by the main functions of the \code{warmthcompetence} package for text processing.
 }
 \details{
-Some features depend Spacyr which must be installed seperately in Python.
+Some features depend Spacyr which must be installed separately in Python.
 }
 \keyword{internal}

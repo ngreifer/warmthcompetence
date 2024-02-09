@@ -28,7 +28,7 @@ Assesses warmth perceptions in self-presentational natural language.
     The function also contains a metrics argument that enables users to also return the raw features used to assess warmth perceptions.
 }
 \details{
-Some features depend Spacyr which must be installed seperately in Python.
+Some features depend Spacyr which must be installed separately in Python.
 }
 \examples{
 data("example_data")
@@ -42,7 +42,7 @@ summary(warmth_model1)
 
 }
 \references{
-Benoit K, Watanabe K, Wang H, Nulty P, Obeng A, Müller S, Matsuo A (2018). “quanteda: An R package for the quantitative analysis of textual data.” Journal of Open Source Software, 3(30), 774. doi: 10.21105/joss.00774, https://quanteda.io.
+Benoit K, Watanabe K, Wang H, Nulty P, Obeng A, Müller S, Matsuo A (2018). “quanteda: An R package for the quantitative analysis of textual data.” Journal of Open Source Software, 3(30), 774. \doi{10.21105/joss.00774}, https://quanteda.io.
 Buchanan, E. M., Valentine, K. D., & Maxwell, N. P. (2018). LAB: Linguistic Annotated Bibliography - Shiny Application. Retrieved from http://aggieerin.com/shiny/lab_table.
 Rinker, T. W. (2018). lexicon: Lexicon Data version 1.2.1. http://github.com/trinker/lexicon
 Rinker, T. W. (2019). sentimentr: Calculate Text Polarity Sentiment version 2.7.1. http://github.com/trinker/sentimentr
