@@ -136,19 +136,10 @@ competence <- function(text, ID = NULL, metrics = "scores") {
   df$ADP <- df$ADP/ df$WC
   df$ROOT <- df$ROOT / df$WC
 
-  #!
-  #sentence level spacy features
-  # suppressWarnings(spacy_new2A <- plyr::ddply(try, .(doc_id, sentence_id), plyr::summarize,
-  #                                             post_JJS_ADJ2_subj = (length(token_id[tag == 'JJS' & token_id > token_id[dep_rel == "nsubj"]])/ length(token_id)),
-  #                                             pre_NOUN2_ROOT = (length(token_id[pos == 'NOUN' & token_id < token_id[dep_rel == "ROOT"]])/ length(token_id))
-  # ))
-
-  ## Need to address warnings
-  ## Use `tt <- try[try$doc_id == "1" & try$sentence_id == 4,]` to examine
   spacy_new2A <- dplyr::summarize(
     try,
-    post_JJS_ADJ2_subj = sum(.data$tag == 'JJS' & .data$token_id > .data$token_id[.data$dep_rel == "nsubj"]) / dplyr::n(),
-    pre_NOUN2_ROOT = sum(.data$pos == 'NOUN' & .data$token_id < .data$token_id[.data$dep_rel == "ROOT"]) / dplyr::n(),
+    post_JJS_ADJ2_subj = sum(.data$tag == 'JJS' & .data$token_id > .data$token_id[.data$dep_rel == "nsubj"][1]) / dplyr::n(),
+    pre_NOUN2_ROOT = sum(.data$pos == 'NOUN' & .data$token_id < .data$token_id[.data$dep_rel == "ROOT"][1]) / dplyr::n(),
     .by = c(.data$doc_id, .data$sentence_id)
   )
 
@@ -336,11 +327,12 @@ competence <- function(text, ID = NULL, metrics = "scores") {
                               "Negative.Emotion","D","shannon","Fucks","bundle_1C",
                               "bundle_2")]
 
-  competence_features <- raster::as.matrix(competence_features)
-  competence_features[!is.finite(competence_features)] <- 0
+  for (i in seq_along(competence_features)) {
+    competence_features[[i]][!is.finite(competence_features[[i]])] <- 0
+  }
 
   suppressWarnings(preprocessParams1 <- caret::preProcess(competence_features, method = c("center", "scale")))
-  competence_features1 <- stats::predict(preprocessParams1, competence_features)
+  competence_features1 <- stats::predict(preprocessParams1, newdata = competence_features)
 
   out <- data.frame(ID = df$ID)
 

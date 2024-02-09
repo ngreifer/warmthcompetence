@@ -98,7 +98,7 @@ As can be seen above, the predictions of the warmth model positively predict the
 Are model predictions of competence higher for the participants asked to present themselves as a competent person compared to a warm person?
 
 ```{r echo = TRUE, eval=TRUE}
-t.test(all_data$competence_predictions ~ all_data$condition)
+t.test(competence_predictions ~ condition, data = all_data)
 ```
 
 As can be seen above, the model significantly predicted that participants in the competence condition expressed more competence compared to those in the warmth condition.
@@ -106,7 +106,7 @@ As can be seen above, the model significantly predicted that participants in the
 Now, are model predictions of warmth higher for the participants asked to present themselves as a warm person compared to a competent person?
 
 ```{r echo = TRUE, eval=TRUE}
-t.test(all_data$warmth_predictions ~ all_data$condition)
+t.test(warmth_predictions ~ condition, data = all_data)
 ```
 
 As can be seen above, the model significantly predicted that participants in the warmth condition expressed more warmth compared to those in the competence condition.

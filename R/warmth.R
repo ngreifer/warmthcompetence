@@ -62,7 +62,8 @@ warmth <- function(text, ID = NULL, metrics = "scores") {
   df <- data.frame(text, ID)
   df$WC <- vapply(df$text, ngram::wordcount, numeric(1L))
   tbl <- dplyr::tibble(doc_id = ID, text = text)
-  try <- spacyr::spacy_parse(tbl, tag = TRUE, dependency = TRUE, nounphrase = TRUE, entity = FALSE)
+  try <- spacyr::spacy_parse(tbl, tag = TRUE, dependency = TRUE, nounphrase = TRUE,
+                             entity = FALSE)
   tidy_norms_clean <- words_clean(text, ID)
   df_corpus <- quanteda::corpus(text, docnames = ID)
 
@@ -207,23 +208,12 @@ warmth <- function(text, ID = NULL, metrics = "scores") {
     else df_politeness$Hello
   }
 
-  #!
-  #sentence level spacy features
-  # suppressWarnings(spacy_new2A <- plyr::ddply(try, .(.data$doc_id, sentence_id), dplyr::summarise,
-  #                                             pre_UH_adv2_subj = (length(token_id[tag == 'UH' & token_id < token_id[dep_rel == "nsubj"]])/ length(token_id)),
-  #                                             post_PRP_adv1_subj = (length(token_id[tag == 'PRP' & token_id > token_id[dep_rel == "nsubj"]])/ length(token_id[tag == 'PRP'])),
-  #                                             post_adj1_ROOT = (length(token_id[pos == 'ADJ' & token_id > token_id[dep_rel == "ROOT"]])/ length(token_id[pos == 'ADJ'])),
-  #                                             post_NNS_NOUN1_subj = (length(token_id[tag == 'NNS' & token_id > token_id[dep_rel == "nsubj"]])/ length(token_id[pos == 'NOUN'])),
-  #                                             VB_VERB = (length(token_id[tag == 'VB'])/ length(token_id[pos == 'VERB']))
-  # ))
-
-  ## Need to address warnings
   spacy_new2A <- dplyr::summarize(
     try,
-    pre_UH_adv2_subj = sum(.data$tag == 'UH' & .data$token_id < .data$token_id[.data$dep_rel == "nsubj"]) / dplyr::n(),
-    post_PRP_adv1_subj = sum(.data$tag == 'PRP' & .data$token_id > .data$token_id[.data$dep_rel == "nsubj"]) / sum(.data$tag == 'PRP'),
-    post_adj1_ROOT = sum(.data$pos == 'ADJ' & .data$token_id > .data$token_id[.data$dep_rel == "ROOT"]) / sum(.data$pos == 'ADJ'),
-    post_NNS_NOUN1_subj = sum(.data$tag == 'NNS' & .data$token_id > .data$token_id[.data$dep_rel == "nsubj"]) / sum(.data$pos == 'NOUN'),
+    pre_UH_adv2_subj = sum(.data$tag == 'UH' & .data$token_id < .data$token_id[.data$dep_rel == "nsubj"][1]) / dplyr::n(),
+    post_PRP_adv1_subj = sum(.data$tag == 'PRP' & .data$token_id > .data$token_id[.data$dep_rel == "nsubj"][1]) / sum(.data$tag == 'PRP'),
+    post_adj1_ROOT = sum(.data$pos == 'ADJ' & .data$token_id > .data$token_id[.data$dep_rel == "ROOT"][1]) / sum(.data$pos == 'ADJ'),
+    post_NNS_NOUN1_subj = sum(.data$tag == 'NNS' & .data$token_id > .data$token_id[.data$dep_rel == "nsubj"][1]) / sum(.data$pos == 'NOUN'),
     VB_VERB = sum(.data$tag == 'VB') / sum(.data$pos == 'VERB'),
     .by = c(.data$doc_id, .data$sentence_id)
   )
@@ -332,11 +322,13 @@ warmth <- function(text, ID = NULL, metrics = "scores") {
                            "post_NNS_NOUN1_subj", "HAL", "Hello.x", "poss",
                            "Positive_Warm", "VBG.x", "disgust_negated",
                            "Concreteness", "joy_difference", "AoA", "collision")]
-  warmth_features <- raster::as.matrix(warmth_features)
-  warmth_features[!is.finite(warmth_features)] <- 0
+
+  for (i in seq_along(warmth_features)) {
+    warmth_features[[i]][!is.finite(warmth_features[[i]])] <- 0
+  }
 
   suppressWarnings(preprocessParams1 <- caret::preProcess(warmth_features, method = c("center", "scale")))
-  warmth_features1 <- stats::predict(preprocessParams1, warmth_features)
+  warmth_features1 <- stats::predict(preprocessParams1, newdata = warmth_features)
 
   out <- data.frame(ID = df$ID)
 
