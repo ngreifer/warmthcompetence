@@ -1,7 +1,7 @@
 Package: warmthcompetence
 Type: Package
 Title: Warmth and Competence Detectors
-Version: 0.1.2.9001
+Version: 0.1.2.9002
 Authors@R: c(
     person("Bushra", "Guenoun", email = "bushraguenoun@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0003-0975-1620")),
@@ -26,7 +26,7 @@ Imports:
     qdap, 
     politeness,
     qdapDictionaries,
-    quanteda,
+    quanteda (>= 4.0.2),
     sentimentr,
     stats,
     tidyr, 
