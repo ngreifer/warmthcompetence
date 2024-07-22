@@ -67,11 +67,7 @@ competence <- function(text, ID = NULL, metrics = "scores") {
 
   df_dfm <- quanteda::dfm(
     quanteda::tokens(df_corpus),
-    tolower = TRUE,
-    select = NULL,
-    remove = NULL,
-    dictionary = NULL,
-    thesaurus = NULL)
+    tolower = TRUE)
 
   #politeness
   df_politeness <- politeness::politeness(text, parser = "spacy",
