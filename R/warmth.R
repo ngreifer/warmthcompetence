@@ -1,39 +1,46 @@
-#' Warmth Detector
+#' Warmth/Confidence Detector
 #'
-#' @description Assesses warmth perceptions in self-presentational natural language.
-#'     This function is one of the main two functions of the  \code{warmthcompetence} package.
-#'     It takes an N-length vector of self-presentational text documents and N-length vector of document IDs and returns a warmth perception score that represents how much warmth
-#'     others attribute the individual who wrote the self-presentational text.
-#'     The function also contains a metrics argument that enables users to also return the raw features used to assess warmth perceptions.
-#' @param text character A vector of texts, each of which will be assessed for warmth.
-#' @param ID character A vector of IDs that will be used to identify the warmth scores.
-#' @param metrics character An argument that allows users to decide what metrics to return. Users can return the warmth scores (metrics = "scores"),
-#'     the features that underlie the warmth scores (metrics = "features"), or both the warmth scores and the features (metrics = "all).
-#'     The default choice is to return the warmth scores.
-#' @details Some features depend Spacyr which must be installed separately in Python.
-#' @returns The default is to return a data.frame with each row containing the document identifier and the warmth score.
-#'     Users can also customize what is returned through the metrics argument. If metrics = "features", then a dataframe of warmth features will be
-#'     returned where each document is represented by a row. If metrics = "all", then both the warmth scores and features will be returned in a data.frame.
+#' @description
+#' Assesses warmth and competence perceptions in self-presentational natural language. These functions each take an N-length vector of self-presentational text documents and N-length vector of document IDs and return a warmth/competence perception score that represents how much warmth/competence others attribute the individual who wrote the self-presentational text. The function also contains a metrics argument that enables users to also return the raw features used to assess warmth and competence perceptions.
+#'
+#' @param text `character`; a vector of texts, each of which will be assessed for warmth/competence.
+#' @param ID `character`; a vector of IDs that will be used to identify the warmth/competence scores.
+#' @param metrics `character`; an argument that allows users to decide what metrics to return. Users can return the warmth/competence scores (`metrics = "scores"`), the features that underlie the warmth/competence scores (`metrics = "features"`), or both the warmth/competence scores and the features (`metrics = "all"`). The default is to return the warmth/competence scores.
+#'
+#' @details Some features depend on Spacyr which must be installed separately in Python.
+#'
+#' @returns
+#' The default is to return a data frame with each row containing the document identifier and the warmth/competence score. Users can also customize what is returned through the `metrics` argument. If `metrics = "features"`, then a data frame of warmth/competence features will be returned where each document is represented by a row. If `metrics = "all"`, then both the warmth/competence scores and features will be returned in a data frame.
 #'
 #' @references
-#' Benoit K, Watanabe K, Wang H, Nulty P, Obeng A, Müller S, Matsuo A (2018). “quanteda: An R package for the quantitative analysis of textual data.” Journal of Open Source Software, 3(30), 774. \doi{10.21105/joss.00774}, https://quanteda.io.
-#' Buchanan, E. M., Valentine, K. D., & Maxwell, N. P. (2018). LAB: Linguistic Annotated Bibliography - Shiny Application. Retrieved from http://aggieerin.com/shiny/lab_table.
-#' Rinker, T. W. (2018). lexicon: Lexicon Data version 1.2.1. http://github.com/trinker/lexicon
-#' Rinker, T. W. (2019). sentimentr: Calculate Text Polarity Sentiment version 2.7.1. http://github.com/trinker/sentimentr
-#' Yeomans, M., Kantor, A. & Tingley, D. (2018). Detecting Politeness in Natural Language. The R Journal, 10(2), 489-502.
+#' Benoit, K., Watanabe, K., Wang, H., Nulty, P., Obeng, A., Müller, S., & Matsuo, A. (2018). quanteda: An R package for the quantitative analysis of textual data. *Journal of Open Source Software*, 3(30), 774. \doi{10.21105/joss.00774}
 #'
+#' Buchanan, E. M., Valentine, K. D., & Maxwell, N. (2018). The LAB: Linguistic Annotated Bibliography. \doi{0.31219/osf.io/h3bwx}
 #'
-#'@examples
-#'data("example_data")
+#' Rinker, T. W. (2018). lexicon: Lexicon Data version 1.2.1. \url{http://github.com/trinker/lexicon}
 #'
-#'warmth_scores <- warmth(example_data$bio, metrics = "all")
+#' Rinker, T. W. (2021). sentimentr: Calculate Text Polarity Sentiment version 2.9.0. \url{http://github.com/trinker/sentimentr}
 #'
-#'example_data$warmth_predictions <- warmth_scores$warmth_predictions
-#'warmth_model1 <- lm(RA_warm_AVG  ~ warmth_predictions, data = example_data)
-#'summary(warmth_model1)
+#' Yeomans, M., Kantor, A., & Tingley, D. (2019). The politeness Package: Detecting Politeness in Natural Language. *The R Journal*, 10(2), 489. \doi{10.32614/RJ-2018-079}
 #'
+#' @examples
+#' \dontrun{
+#' data("example_data")
 #'
-#'@export
+#' warmth_scores <- warmth(example_data$bio, metrics = "all")
+#'
+#' example_data$warmth_predictions <- warmth_scores$warmth_predictions
+#' warmth_model1 <- lm(RA_warm_AVG  ~ warmth_predictions, data = example_data)
+#' summary(warmth_model1)
+#'
+#' competence_scores <- competence(example_data$bio, metrics = "all")
+#'
+#' example_data$competence_predictions <- competence_scores$competence_predictions
+#' competence_model1 <- lm(RA_comp_AVG ~ competence_predictions, data = example_data)
+#' summary(competence_model1)
+#' }
+
+#' @export
 warmth <- function(text, ID = NULL, metrics = "scores") {
 
   if (!is.character(text)) {
@@ -126,15 +133,13 @@ warmth <- function(text, ID = NULL, metrics = "scores") {
   df$mental_verbs <- df$mental_verbs / df$WC
 
   #Psycholingustic features
-  psy_ling_df <- dplyr::inner_join(tidy_norms_clean, psy_ling_dic,
-                                   by = c("word" = "Symbol"))
-
-  psy_ling_scores <- dplyr::summarize(
-    psy_ling_df,
-    AoA = sum(.data$AoA, na.rm = TRUE),
-    Image = sum(.data$Imagery, na.rm = TRUE),
-    .by = .data$ID
-  )
+  psy_ling_scores <- tidy_norms_clean |>
+    dplyr::inner_join(psy_ling_dic, by = c("word" = "Symbol")) |>
+    dplyr::summarize(
+      AoA = sum(.data$AoA, na.rm = TRUE),
+      Image = sum(.data$Imagery, na.rm = TRUE),
+      .by = .data$ID
+    )
 
   df <- dplyr::left_join(df, psy_ling_scores,
                          by = c("ID" = "ID"))
@@ -172,14 +177,13 @@ warmth <- function(text, ID = NULL, metrics = "scores") {
   df$polysemic_ALL <- df$polysemic_ALL / df$WC
 
   ##LabMT
-  labMT_values <- dplyr::inner_join(tidy_norms_clean, qdapDictionaries::labMT,
-                                    by = c("word" = "word"))
-
-  labMT_values <- dplyr::summarize(
-    labMT_values,
-    happiness_rank = sum(.data$happiness_rank, na.rm = TRUE),
-    .by = .data$ID
-  )
+  labMT_values <- tidy_norms_clean |>
+    dplyr::inner_join(qdapDictionaries::labMT,
+                      by = c("word" = "word")) |>
+    dplyr::summarize(
+      happiness_rank = sum(.data$happiness_rank, na.rm = TRUE),
+      .by = .data$ID
+    )
 
   df <- dplyr::left_join(df, labMT_values,
                          by = c("ID" = "ID"))
@@ -206,23 +210,21 @@ warmth <- function(text, ID = NULL, metrics = "scores") {
     else df_politeness$Hello
   }
 
-  spacy_new2A <- dplyr::summarize(
-    try,
-    pre_UH_adv2_subj = sum(.data$tag == 'UH' & .data$token_id < .data$token_id[.data$dep_rel == "nsubj"][1]) / dplyr::n(),
-    post_PRP_adv1_subj = sum(.data$tag == 'PRP' & .data$token_id > .data$token_id[.data$dep_rel == "nsubj"][1]) / sum(.data$tag == 'PRP'),
-    post_adj1_ROOT = sum(.data$pos == 'ADJ' & .data$token_id > .data$token_id[.data$dep_rel == "ROOT"][1]) / sum(.data$pos == 'ADJ'),
-    post_NNS_NOUN1_subj = sum(.data$tag == 'NNS' & .data$token_id > .data$token_id[.data$dep_rel == "nsubj"][1]) / sum(.data$pos == 'NOUN'),
-    VB_VERB = sum(.data$tag == 'VB') / sum(.data$pos == 'VERB'),
-    .by = c(.data$doc_id, .data$sentence_id)
-  )
+  spacy_new2 <- try |>
+    dplyr::summarize(
+      pre_UH_adv2_subj = sum(.data$tag == 'UH' & .data$token_id < .data$token_id[.data$dep_rel == "nsubj"][1]) / dplyr::n(),
+      post_PRP_adv1_subj = sum(.data$tag == 'PRP' & .data$token_id > .data$token_id[.data$dep_rel == "nsubj"][1]) / sum(.data$tag == 'PRP'),
+      post_adj1_ROOT = sum(.data$pos == 'ADJ' & .data$token_id > .data$token_id[.data$dep_rel == "ROOT"][1]) / sum(.data$pos == 'ADJ'),
+      post_NNS_NOUN1_subj = sum(.data$tag == 'NNS' & .data$token_id > .data$token_id[.data$dep_rel == "nsubj"][1]) / sum(.data$pos == 'NOUN'),
+      VB_VERB = sum(.data$tag == 'VB') / sum(.data$pos == 'VERB'),
+      .by = c(.data$doc_id, .data$sentence_id)
+    ) |>
+    dplyr::summarize(
+      dplyr::across(.data$pre_UH_adv2_subj:.data$VB_VERB, function(x) mean(x, na.rm = TRUE)),
+      .by = .data$doc_id
+    )
 
-  spacy_new2B <- dplyr::summarize(
-    spacy_new2A,
-    dplyr::across(.data$pre_UH_adv2_subj:.data$VB_VERB, mean, na.rm = TRUE),
-    .by = .data$doc_id
-  )
-
-  df <- dplyr::left_join(df, spacy_new2B,
+  df <- dplyr::left_join(df, spacy_new2,
                          by = c("ID" = "doc_id"))
 
   #message level spacy features
@@ -239,10 +241,13 @@ warmth <- function(text, ID = NULL, metrics = "scores") {
   df$VBG.x <- df$VBG / df$WC
 
   # Emotion
-  emotion <- suppressWarnings(sentimentr::emotion_by(df$text, emotion_dt = lexicon::hash_nrc_emotions,
-                                                      valence_shifters_dt = lexicon::hash_valence_shifters,
-                                                      drop.unused.emotions = FALSE, un.as.negation = TRUE,
-                                                      n.before = 5, n.after = 2))
+  suppressWarnings({
+    emotion <- sentimentr::emotion_by(df$text, emotion_dt = lexicon::hash_nrc_emotions,
+                                      valence_shifters_dt = lexicon::hash_valence_shifters,
+                                      drop.unused.emotions = FALSE, un.as.negation = TRUE,
+                                      n.before = 5, n.after = 2)
+  })
+
   emotion$ID <- ID[emotion$element_id]
 
   emotion_wide <- tidyr::pivot_wider(emotion[c("ID", "emotion_type", "ave_emotion")],
@@ -256,27 +261,23 @@ warmth <- function(text, ID = NULL, metrics = "scores") {
                          by = c("ID" = "ID"))
 
   #Norms
-  single_df <- dplyr::inner_join(tidy_norms_clean, single_words_dic,
-                                 by = c("word" = "Symbol"))
-
-  single_scores <- dplyr::summarize(
-    single_df,
-    HAL = sum(.data$HAL, na.rm = TRUE),
-    .by = .data$ID
-  )
+  single_scores <- tidy_norms_clean |>
+    dplyr::inner_join(single_words_dic, by = c("word" = "Symbol")) |>
+    dplyr::summarize(
+      HAL = sum(.data$HAL, na.rm = TRUE),
+      .by = .data$ID
+    )
 
   df <- dplyr::left_join(df, single_scores,
                          by = c("ID" = "ID"))
 
-  norms_dic <- norms_dic[c("Symbol", "Concreteness")]
-  norms_df <- dplyr::inner_join(tidy_norms_clean, norms_dic,
-                                by = c("word" = "Symbol"))
-
-  norms_scores <- dplyr::summarize(
-    norms_df,
-    Concreteness = sum(.data$Concreteness,  na.rm = TRUE),
-    .by = .data$ID
-  )
+  norms_scores <- tidy_norms_clean |>
+    dplyr::inner_join(norms_dic[c("Symbol", "Concreteness")],
+                      by = c("word" = "Symbol")) |>
+    dplyr::summarize(
+      Concreteness = sum(.data$Concreteness, na.rm = TRUE),
+      .by = .data$ID
+    )
 
   df <- dplyr::left_join(df, norms_scores,
                          by = c("ID" = "ID"))
@@ -312,20 +313,23 @@ warmth <- function(text, ID = NULL, metrics = "scores") {
   # Running pre-trained model
   warmth_features <- df[c("Courage_words", "explore_words",
                           "polysemic_ALL", "Warmth_words",
-                           "Linsear.Write", "Swearing",
-                           "pre_UH_adv2_subj", "post_PRP_adv1_subj", "post_adj1_ROOT",
-                           "finance_words", "VB_VERB", "anger_difference",
-                           "employ_words", "happiness_rank", "social_words",
-                           "strong_words", "mental_verbs", "Image",
-                           "post_NNS_NOUN1_subj", "HAL", "Hello.x", "poss",
-                           "Positive_Warm", "VBG.x", "disgust_negated",
-                           "Concreteness", "joy_difference", "AoA", "collision")]
+                          "Linsear.Write", "Swearing",
+                          "pre_UH_adv2_subj", "post_PRP_adv1_subj", "post_adj1_ROOT",
+                          "finance_words", "VB_VERB", "anger_difference",
+                          "employ_words", "happiness_rank", "social_words",
+                          "strong_words", "mental_verbs", "Image",
+                          "post_NNS_NOUN1_subj", "HAL", "Hello.x", "poss",
+                          "Positive_Warm", "VBG.x", "disgust_negated",
+                          "Concreteness", "joy_difference", "AoA", "collision")]
 
   for (i in seq_along(warmth_features)) {
     warmth_features[[i]][!is.finite(warmth_features[[i]])] <- 0
   }
 
-  suppressWarnings(preprocessParams1 <- caret::preProcess(warmth_features, method = c("center", "scale")))
+  suppressWarnings({
+    preprocessParams1 <- caret::preProcess(warmth_features, method = c("center", "scale"))
+  })
+
   warmth_features1 <- stats::predict(preprocessParams1, newdata = warmth_features)
 
   out <- data.frame(ID = df$ID)

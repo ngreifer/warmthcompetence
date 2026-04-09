@@ -1,0 +1,68 @@
+---
+output: github_document
+bibliography: vignettes/references.bib
+link-citations: true
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, echo = FALSE}
+knitr::opts_chunk$set(
+  collapse = FALSE,
+  warning = FALSE,
+  message = FALSE,
+  tidy = FALSE,
+  fig.align = 'center',
+  comment = "##",
+  fig.path = "man/figures/README-"
+)
+```
+# warmthcompetence: Warmth and Competence Detectors
+
+Warmth and competence are the two main dimensions of social perception and judgment [@cuddy2008] . When individuals introduce or describe themselves, their audiences automatically make judgments about their warmth and competence. In the *warmthcompetence* package, we provide tools that estimate warmth and competence social perceptions from natural self-presentational language. We use pre-trained enet regression models to provide numerical representations of warmth and competence perceptions.
+
+## Citing warmthcompetence
+
+To generate a citation for *warmthcompetence*, please run
+
+```{r, eval = FALSE}
+citation("warmthcompetence")
+```
+
+## Installation
+
+To install *warmthcompetence* from CRAN, use the following code in your R session:
+
+```{r, eval = FALSE}
+install.packages("warmthcompetence")
+```
+
+To install the development version from GitHub, use the following code:
+
+```{r, eval=F}
+devtools::install_github("bushraguenoun/warmthcompetence")
+```
+
+Note that some features depend on *spacyr* which must be installed separately through Python. To install *spacyr*, follow the instructions [here](https://www.rdocumentation.org/packages/spacyr/).
+
+## Usage
+
+*warmthcompetence* contains two main functions: `warmth()` and `competence()`. These functions can be used as described below:
+
+```{r eval=FALSE}
+competence_scores <- competence(text_vector, ID_vector, metrics = "scores")
+
+warmth_scores <- warmth(text_vector, ID_vector, metrics = "scores")
+```
+
+In the code above, `text_vector` is the vector of texts that will be assessed for warmth or competence. `ID_vector` is a vector of IDs that will be used to identify the warmth or competence scores. The `metrics` argument allows users to decide what metrics to return. Users can return the warmth or competence scores (`metrics = "scores"`), the features that underlie the warmth or competence scores (`metrics = "features"`), or both the warmth or competence scores and the features (`metrics = "all"`). The default choice is to return the warmth or competence scores.
+
+See `vignette("warmthcompetence")` for more details.
+
+## Getting Help
+
+If you have any questions or encounter any problems with the package, please submit an issue through [Github](https://github.com/bushraguenoun/warmthcompetence/issues).
+
+You can also contact me directly at bushraguenoun\@gmail.com.
+
+## References

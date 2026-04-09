@@ -1,38 +1,7 @@
 #' Competence Detector
-#'
-#' @description Assesses competence perceptions in self-presentational natural language.
-#'     This function is one of the main two functions of the \code{warmthcompetence} package.
-#'     It takes an N-length vector of self-presentational text documents and N-length vector of document IDs and returns a competence perception score that represents how much competence
-#'     others attribute the individual who wrote the self-presentational text.
-#'     The function also contains a metrics argument that enables users to also return the raw features used to assess competence perceptions.
-#' @param text character A vector of texts, each of which will be assessed for competence.
-#' @param ID character A vector of IDs that will be used to identify the competence scores.
-#' @param metrics character An argument that allows users to decide what metrics to return. Users can return the competence scores (metrics = "scores"),
-#'     the features that underlie the competence scores (metrics = "features"), or both the competence scores and the features (metrics = "all).
-#'     The default choice is to return the competence scores.
-#' @details Some features depend Spacyr which must be installed separately in Python.
-#' @returns The default is to return a data.frame with each row containing the document identifier and the competence score.
-#'     Users can also customize what is returned through the metrics argument. If metrics = "features", then a dataframe of competence features will be
-#'     returned where each document is represented by a row. If metrics = "all", then both the competence scores and features will be returned in a data.frame.
-#'
-#' @references
-#' Benoit K, Watanabe K, Wang H, Nulty P, Obeng A, Müller S, Matsuo A (2018). “quanteda: An R package for the quantitative analysis of textual data.” Journal of Open Source Software, 3(30), 774. \doi{10.21105/joss.00774}, https://quanteda.io.
-#' Buchanan, E. M., Valentine, K. D., & Maxwell, N. P. (2018). LAB: Linguistic Annotated Bibliography - Shiny Application. Retrieved from http://aggieerin.com/shiny/lab_table.
-#' Rinker, T. W. (2018). lexicon: Lexicon Data version 1.2.1. http://github.com/trinker/lexicon
-#' Rinker, T. W. (2019). sentimentr: Calculate Text Polarity Sentiment version 2.7.1. http://github.com/trinker/sentimentr
-#' Yeomans, M., Kantor, A. & Tingley, D. (2018). Detecting Politeness in Natural Language. The R Journal, 10(2), 489-502.
-#'
-#' @examples
-#' data("example_data")
-#'
-#' competence_scores <- competence(example_data$bio, metrics = "all")
-#'
-#' example_data$competence_predictions <- competence_scores$competence_predictions
-#' competence_model1 <- lm(RA_comp_AVG ~ competence_predictions, data = example_data)
-#' summary(competence_model1)
-#
 
 #' @export
+#' @rdname warmth
 competence <- function(text, ID = NULL, metrics = "scores") {
 
   if (!is.character(text)) {
@@ -131,20 +100,18 @@ competence <- function(text, ID = NULL, metrics = "scores") {
   df$ADP <- df$ADP/ df$WC
   df$ROOT <- df$ROOT / df$WC
 
-  spacy_new2A <- dplyr::summarize(
-    try,
-    post_JJS_ADJ2_subj = sum(.data$tag == 'JJS' & .data$token_id > .data$token_id[.data$dep_rel == "nsubj"][1]) / dplyr::n(),
-    pre_NOUN2_ROOT = sum(.data$pos == 'NOUN' & .data$token_id < .data$token_id[.data$dep_rel == "ROOT"][1]) / dplyr::n(),
-    .by = c(.data$doc_id, .data$sentence_id)
-  )
+  spacy_new2 <- try |>
+    dplyr::summarize(
+      post_JJS_ADJ2_subj = sum(.data$tag == 'JJS' & .data$token_id > .data$token_id[.data$dep_rel == "nsubj"][1]) / dplyr::n(),
+      pre_NOUN2_ROOT = sum(.data$pos == 'NOUN' & .data$token_id < .data$token_id[.data$dep_rel == "ROOT"][1]) / dplyr::n(),
+      .by = c(.data$doc_id, .data$sentence_id)
+    ) |>
+    dplyr::summarize(
+      dplyr::across(.data$post_JJS_ADJ2_subj:.data$pre_NOUN2_ROOT, function(x) mean(x, na.rm = TRUE)),
+      .by = .data$doc_id
+    )
 
-  spacy_new2B <- dplyr::summarize(
-    spacy_new2A,
-    dplyr::across(.data$post_JJS_ADJ2_subj:.data$pre_NOUN2_ROOT, mean, na.rm = TRUE),
-    .by = .data$doc_id
-  )
-
-  df <- dplyr::left_join(df, spacy_new2B, by = c("ID" = "doc_id"))
+  df <- dplyr::left_join(df, spacy_new2, by = c("ID" = "doc_id"))
 
   ##Competence Codings
   W_C_df <- dplyr::inner_join(tidy_norms_clean,
@@ -241,34 +208,35 @@ competence <- function(text, ID = NULL, metrics = "scores") {
     }
   }
 
-  discourse_scores <- dplyr::inner_join(ref, discourse_scores,
-                                        by = c("ID" = "ID"))
-  discourse_scores$vague_ALL <- discourse_scores$vague + discourse_scores$vague2
-  discourse_scores_short <- discourse_scores[c("ID",  "vague_ALL")]
+  discourse_scores <- ref |>
+    dplyr::inner_join(discourse_scores, by = c("ID" = "ID")) |>
+    dplyr::mutate(vague_ALL = .data$vague + .data$vague2)
+
+  discourse_scores_short <- discourse_scores[c("ID", "vague_ALL")]
   df <- dplyr::left_join(df, discourse_scores_short,
                          by = c("ID" = "ID"))
   df$vague_ALL <- df$vague_ALL / df$WC
 
   #Power
   temp_power <- qdapDictionaries::key.power
-  names(temp_power)[2] <- "y_power"
-  key_power <- dplyr::inner_join(tidy_norms_clean, temp_power,
-                                 by = c("word" = "x"))
+  names(temp_power)[2L] <- "y_power"
 
-  key_power <- dplyr::summarize(
-    key_power,
-    key_power = sum(.data$y_power, na.rm = TRUE),
-    .by = c(.data$ID, .data$y_power)
-  )
+  key_power <- tidy_norms_clean |>
+    dplyr::inner_join(temp_power, by = c("word" = "x")) |>
+    dplyr::summarize(
+      key_power = sum(.data$y_power, na.rm = TRUE),
+      .by = c(.data$ID, .data$y_power)
+    )
+
   positive_power <- key_power[key_power$y_power == '1', c("ID", "key_power")]
-  names(positive_power)[2] <- "positive_power"
+  names(positive_power)[2L] <- "positive_power"
 
   df <- dplyr::left_join(df, positive_power,
                          by = c("ID" = "ID"))
   df$positive_power <- df$positive_power / df$WC
 
   # Sentiment
-  sentiment <-  suppressWarnings(sentimentr::sentiment_by(df$text))
+  sentiment <- suppressWarnings(sentimentr::sentiment_by(df$text))
   df$ave_sentiment <- sentiment$ave_sentiment
 
   #Readability
@@ -326,7 +294,10 @@ competence <- function(text, ID = NULL, metrics = "scores") {
     competence_features[[i]][!is.finite(competence_features[[i]])] <- 0
   }
 
-  suppressWarnings(preprocessParams1 <- caret::preProcess(competence_features, method = c("center", "scale")))
+  suppressWarnings({
+    preprocessParams1 <- caret::preProcess(competence_features, method = c("center", "scale"))
+  })
+
   competence_features1 <- stats::predict(preprocessParams1, newdata = competence_features)
 
   out <- data.frame(ID = df$ID)

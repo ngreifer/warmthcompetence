@@ -1,7 +1,7 @@
 Package: warmthcompetence
 Type: Package
 Title: Warmth and Competence Detectors
-Version: 0.1.2.9002
+Version: 0.1.2.9003
 Authors@R: c(
     person("Bushra", "Guenoun", email = "bushraguenoun@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0003-0975-1620")),
@@ -10,17 +10,16 @@ Authors@R: c(
     person("Noah", "Greifer", role = c("ctb"), 
          email = "ngreifer@iq.harvard.edu",
 	       comment = c(ORCID="0000-0003-3067-7154")))
-Description: Detects perceptions of warmth and competence in American English self-presentational language.
-    Using pre-trained enet regression models, this package provides a numerical representation of warmth and competence perceptions. 
+Description: Detects perceptions of warmth and competence in American English self-presentational language. Using pre-trained enet regression models, this package provides a numerical representation of warmth and competence perceptions. 
 License: AGPL (>= 3)
 Encoding: UTF-8
 URL: https://github.com/bushraguenoun/warmthcompetence
 BugReports: https://github.com/bushraguenoun/warmthcompetence/issues
-RoxygenNote: 7.3.0
+RoxygenNote: 7.3.3
 Imports: 
     spacyr, 
     caret, 
-    dplyr, 
+    dplyr (>= 1.2.0), 
     lexicon, 
     ngram,
     qdap, 
@@ -34,9 +33,10 @@ Imports:
     tm,
     quanteda.textstats
 Depends: 
-    R (>= 3.5.0)
+    R (>= 4.1.0)
 Suggests: 
     rmarkdown,
     knitr
 LazyData: true
 VignetteBuilder: knitr
+Roxygen: list(markdown = TRUE)
